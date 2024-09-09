@@ -145,32 +145,38 @@ function simulation_ex()
     end
     nuclide_grid = JACC.Array(nu_grids)
 
+    na = [1]
+    a = JACC.Array(na)
+    # @allowscalar println("a before is: ", a[1])
 
-    JACC.parallel_for(10, kernel, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
+    JACC.parallel_for(10, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid)
     println("Simulation Ex Complete.")
+
+    na = Array(a)
+    println("a after is: ", na[1])
+
 end
 
-function kernel(lookups, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
+function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid)
-    
-    macro_xs(macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
+    macro_xs(macro_xs_vector, a, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid)
 end
 
-function macro_xs(macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, egrid, hash_bins,
+function macro_xs(macro_xs_vector, a, grid_type, n_isotopes, n_gridpoints, p_energy, egrid, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_data, nuclide_grids)
     p_nuc = 0 # the nuclide we are looking up
     idx = -1
     conc = 0.0 # the concentration of the nuclide in the material
-
+    a[1] = 3
     # # cleans out macro_xs_vector
     for k in 1:5
         macro_xs_vector[k] = 0.0
     end
 
     if grid_type == UNIONIZED
-        a = 1 + 1
+        # a = 1 + 1
         # idx = grid_search(n_isotopes * n_gridpoints, p_energy, egrid) TODO: Fix
     elseif grid_type == HASH
         du = 1.0 / hash_bins
@@ -268,7 +274,7 @@ function calculate_micro_xs(p_energy::Float64, nuc::Int, n_isotopes::Int64,
                 # low = nuclide_grids[nuc*n_gridpoints + idx + 1] # TODO LINE THAT BREAKS EVERYTHING
             end
         elseif grid_type == UNIONIZED
-        a = 1 + 1
+        # a = 1 + 1
         index = idx * n_isotopes + nuc + 1
         data = index_data[index] 
         #     # Unionized Energy Grid - we already know the index, no binary search needed.
