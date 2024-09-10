@@ -8,7 +8,12 @@
 #TODO: Make sure the code is using the CUDA device: DONE
 #TODO: First compare the original versions CUDA vs Threads vs AMDGPU
 # We cannot have different if statements (only one function for the kernel)
-# Check I have access to Frontier and play with mi250x in the future
+# Play with mi250x in the future
+# Everything related to calculations uses Float32 (Single Precision). For output related, it uses Float64 (Double precision), examples include Kernel time, Average time, etc.
+
+# There is a process in execution when running this code in CUDA (A100):
+# miniBUDE CUDA: 0   N/A  N/A   1374566      C   julia                                         446MiB
+# miniBUDEJACC CUDA:  0   N/A  N/A   1378053      C   julia                                        1134MiB
 
 
 
@@ -67,6 +72,10 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
 
   etotals = JACC.Array{Float32}(undef, size(deck.poses)[2])
 
+  #CUDA.@profile sin.(etotals)
+
+  println("Type of protein: ", typeof(protein))
+
 
 
   # warmup
@@ -118,7 +127,7 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
   println("Average time per iteration: $(average_time) seconds")
   
 
-  # Transfer etotals back to CPU
+  # Transfer etotals back to CPU (for cuda and amdgpu only)
   etotals_cpu = Array(etotals)
 
   

@@ -152,6 +152,12 @@ function print_timings(params::Params, deck::Deck, elapsedSeconds::Float64, wgsi
   @printf "- Interactions/s: %.03f billion\n" interactions_per_sec / 1e9
   @printf "- GFLOP/s:        %.03f\n" gflops
   @printf "- GFInst/s:       %.03f\n" gfinsts
+
+  println("Type of elapsedSeconds: ", typeof(elapsedSeconds))
+  println("Type of averageIterationSeconds: ", typeof(averageIterationSeconds))
+  println("Type of interactions_per_sec: ", typeof(interactions_per_sec))
+  println("Type of gflops: ", typeof(gflops))
+  println("Type of gfinsts: ", typeof(gfinsts))
 end
 
 function main()

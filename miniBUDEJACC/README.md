@@ -17,3 +17,10 @@ exit()
 
 julia --project=. -e 'include("src/JACCBUDE.jl")'
 ```
+
+Run profiler ([CUDA](https://cuda.juliagpu.org/stable/development/profiling/)):
+```shell
+nsys profile julia --project=. -e 'include("src/JACCBUDE.jl")'
+nsys stats report1.nsys-rep
+```
+

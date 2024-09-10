@@ -2,8 +2,5 @@
 __clear__ = ["local"]
 version = "11.4"
 
-[JACC]
-backend = "cuda"
-
 [miniBUDEJACC]
-backend = "jacc-threads"
+backend = "jacc-cuda"
