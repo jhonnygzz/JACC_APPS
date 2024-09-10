@@ -10,10 +10,13 @@
 # We cannot have different if statements (only one function for the kernel)
 # Play with mi250x in the future
 # Everything related to calculations uses Float32 (Single Precision). For output related, it uses Float64 (Double precision), examples include Kernel time, Average time, etc.
+#TODO: Should the time calculation be exactly before the parallel_for?
 
 # There is a process in execution when running this code in CUDA (A100):
 # miniBUDE CUDA: 0   N/A  N/A   1374566      C   julia                                         446MiB
 # miniBUDEJACC CUDA:  0   N/A  N/A   1378053      C   julia                                        1134MiB
+# Ran a profiler (NVIDIA Nsight Systems)
+# Had to do CUDA.synchronize() to get correct times when using CUDA.
 
 
 
@@ -116,6 +119,7 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
         etotals,
       )
     end
+    #CUDA.synchronize()
     end_time = time()
     iteration_elapsed = end_time - start_time
     total_elapsed += iteration_elapsed
@@ -270,7 +274,16 @@ end
     end
   end
 
+  # total_elapsed = 0.0
+  # start_time = time()
   JACC.parallel_for(numGroups, kernel, protein, ligand, forcefield, poses, etotals) #numgroups (first variable) determines how many times the kernel function will be called in parallel
+  # end_time = time()
+  # iteration_elapsed = end_time - start_time
+  # total_elapsed += iteration_elapsed
+  # println("Iteration parallel_for: $(iteration_elapsed) seconds")
+
+
+
 end
 
 main()
