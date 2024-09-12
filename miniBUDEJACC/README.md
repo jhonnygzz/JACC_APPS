@@ -10,7 +10,7 @@ julia --project=.
 include("src/BasicBUDEPreferences.jl")
 using .BasicBUDEPreferences
 
-BasicBUDEPreferences.set_backend("jacc-cuda")
+BasicBUDEPreferences.set_backend("cuda")
 println(BasicBUDEPreferences.get_backend())
 
 exit()
