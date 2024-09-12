@@ -16,7 +16,7 @@
 # miniBUDE CUDA: 0   N/A  N/A   1374566      C   julia                                         446MiB
 # miniBUDEJACC CUDA:  0   N/A  N/A   1378053      C   julia                                        1134MiB
 # Ran a profiler (NVIDIA Nsight Systems)
-# Had to do CUDA.synchronize() to get correct times when using CUDA.
+# Had to do CUDA.synchronize() to get correct times when using CUDA. This does not happen with AMDGPU
 
 
 
@@ -31,7 +31,9 @@ include("BUDE.jl")
 include("BasicBUDEPreferences.jl")
 @static if endswith(BasicBUDEPreferences.backend, "cuda")
     # @TODO Julia Pkg.add will add target = :weakdeps in later versions
-    Pkg.add(; name = "CUDA", version = "v5.1.1")
+    #Pkg.add(; name = "CUDA", version = "v5.1.1")
+    #Pkg.add("CUDA")
+    Pkg.update("CUDA")
     import CUDA
     println("Using CUDA as back end")
 
@@ -39,7 +41,9 @@ include("BasicBUDEPreferences.jl")
     println("device: $(CUDA.name(device))")
 
 elseif endswith(BasicBUDEPreferences.backend, "amdgpu")
-    Pkg.add(; name = "AMDGPU", version = "v0.8.6")
+    #Pkg.add(; name = "AMDGPU", version = "v0.8.6")
+    #Pkg.add("AMDGPU")
+    Pkg.update("AMDGPU")
     import AMDGPU
     println("Using AMDGPU as back end")
     
@@ -120,6 +124,7 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
       )
     end
     #CUDA.synchronize()
+    #AMDGPU.synchronize()
     end_time = time()
     iteration_elapsed = end_time - start_time
     total_elapsed += iteration_elapsed
@@ -277,6 +282,7 @@ end
   # total_elapsed = 0.0
   # start_time = time()
   JACC.parallel_for(numGroups, kernel, protein, ligand, forcefield, poses, etotals) #numgroups (first variable) determines how many times the kernel function will be called in parallel
+  # CUDA.synchronize()
   # end_time = time()
   # iteration_elapsed = end_time - start_time
   # total_elapsed += iteration_elapsed

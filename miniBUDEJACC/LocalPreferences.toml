@@ -3,4 +3,4 @@ __clear__ = ["local"]
 version = "11.4"
 
 [miniBUDEJACC]
-backend = "jacc-cuda"
+backend = "cuda"
