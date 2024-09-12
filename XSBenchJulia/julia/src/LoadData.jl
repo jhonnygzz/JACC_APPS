@@ -180,7 +180,7 @@ function default_input()
         355,        # n_isotopes
         11303,      # n_gridpoints
         17000000,   # lookups
-        'l',    # HM originally "large"
+        'l',        # HM originally "large"
         0,          # grid_type
         10000,      # hash_bins
         0,          # particles
@@ -191,7 +191,7 @@ function default_input()
 end
 
 function load_sim_data()
-    fname = "../cuda/SimulationData.txt"
+    fname = "../../../OLD/XSBench/cuda/SimulationData.txt"
     println("Attempting to open file $fname...")
 
 
