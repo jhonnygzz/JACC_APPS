@@ -1,0 +1,60 @@
+DEFAULT PARAMETERS 10 Iterations
+
+CUDA (NVIDIA GeForce RTX 3090)
+
+miniBUDE:
+Using kernel parameters: <<<256,64>>> 1:65536
+- Kernel time:    140.443 ms
+- Average time:   14.044 ms
+- Interactions/s: 113.803 billion
+- GFLOP/s:        3700.988
+- GFInst/s:       2845.087
+
+miniBUDE JACC:
+- Kernel time:    0.217 ms
+- Average time:   0.022 ms
+- Interactions/s: 73667.279 billion
+- GFLOP/s:        2223029.574
+- GFInst/s:       1841681.977
+
+
+
+AMDGPU (AMD Radeon RX 6900 XT)
+
+miniBUDE:
+Using kernel parameters: <<<16384,64>>> 1:65536
+- Kernel time:    2923.611 ms
+- Average time:   292.361 ms
+- Interactions/s: 5.467 billion
+- GFLOP/s:        177.786
+- GFInst/s:       136.671
+
+miniBUDE JACC:
+- Kernel time:    2683.075 ms
+- Average time:   268.307 ms
+- Interactions/s: 5.957 billion
+- GFLOP/s:        179.760
+- GFInst/s:       148.924
+
+
+Threads (64 threads) (AMD EPYC 7742 64-Core Processor):
+
+julia --project=Threaded -t 64 src/Threaded.jl
+
+miniBUDE:
+- Kernel time:    1522.385 ms
+- Average time:   152.239 ms
+- Interactions/s: 10.499 billion
+- GFLOP/s:        316.812
+- GFInst/s:       262.465
+
+
+
+julia --project=. -e 'include("src/JACCBUDE.jl")' -t 64
+
+miniBUDEJACC:
+- Kernel time:    1342.390 ms
+- Average time:   134.239 ms
+- Interactions/s: 11.906 billion
+- GFLOP/s:        359.292
+- GFInst/s:       297.658
