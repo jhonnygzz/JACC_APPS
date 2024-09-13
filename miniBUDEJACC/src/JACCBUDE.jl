@@ -6,7 +6,7 @@
 #TODO: Check its using elapsed correctly: DONE
 #TODO: Print the time: DONE
 #TODO: Make sure the code is using the CUDA device: DONE
-#TODO: First compare the original versions CUDA vs Threads vs AMDGPU
+#TODO: First compare the original versions CUDA vs Threads vs AMDGPU: Done
 # We cannot have different if statements (only one function for the kernel)
 # Play with mi250x in the future
 # Everything related to calculations uses Float32 (Single Precision). For output related, it uses Float64 (Double precision), examples include Kernel time, Average time, etc.
@@ -17,6 +17,9 @@
 # miniBUDEJACC CUDA:  0   N/A  N/A   1378053      C   julia                                        1134MiB
 # Ran a profiler (NVIDIA Nsight Systems)
 # Had to do CUDA.synchronize() to get correct times when using CUDA. This does not happen with AMDGPU
+# Difference between the original CUDA code and this code may be the work distribution affecting the order of operations
+# Can't do print statements of variables inside the kernel function since it is running on the GPU
+# Already compared the output of both JACC-CUDA and CUDA. The output is mostly the same, expect some energies are 0.01 different.
 
 
 
@@ -71,13 +74,13 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
   #nposes::Int = size(deck.poses)[2]
   #poses = size(deck.poses)[2]
 
-  protein = JACC.Array{Atom}(deck.protein)
-  ligand = JACC.Array{Atom}(deck.ligand)
-  forcefield = JACC.Array{FFParams}(deck.forcefield)
-  poses = JACC.Array{Float32,2}(deck.poses)
+  protein = JACC.Array{Atom}(deck.protein) #The number of atoms in the protein molecule. The protein is typically the larger molecule that the ligand is being docked to.
+  ligand = JACC.Array{Atom}(deck.ligand) #The number of atoms in the ligand molecule. The ligand is typically a small molecule that we're trying to dock to the prot
+  forcefield = JACC.Array{FFParams}(deck.forcefield) # The number of force field parameters used in the simulation. Force fields define the interactions between atoms and are crucial for calculating the energy of each pose.
+  poses = JACC.Array{Float32,2}(deck.poses) #This indicates the number of different orientations and positions of the ligand molecule being tested
   #etotals = JACC.Array{Float32}(undef, poses)
 
-  etotals = JACC.Array{Float32}(undef, size(deck.poses)[2])
+  etotals = JACC.Array{Float32}(undef, size(deck.poses)[2]) #stores the total energy for each pose.
 
   #CUDA.@profile sin.(etotals)
 
@@ -86,6 +89,7 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
 
 
   # warmup
+  start_time = time()
   fasten_main(
     Val(convert(Int, params.wgsize)),
     protein,
@@ -94,6 +98,10 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
     poses,
     etotals,
   )
+  end_time = time()
+  iteration_elapsed = end_time - start_time
+  println("Iteration warmup: $(iteration_elapsed) seconds")
+
 
   # ORIGINAL ELAPSED FROM THREADED.JL
 
@@ -140,7 +148,7 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
   etotals_cpu = Array(etotals)
 
   
-  #(etotals, elapsed, params.wgsize)
+  #(etotals, total_elapsed, params.wgsize)
   #(etotals_cpu, elapsed, params.wgsize)
   (etotals_cpu, total_elapsed, params.wgsize)
 end
@@ -175,6 +183,13 @@ end
       @inbounds cy::Float32 = cos(poses[2, ix])
       @inbounds sz::Float32 = sin(poses[3, ix])
       @inbounds cz::Float32 = cos(poses[3, ix])
+
+      # println("Iteration $i:")
+      # println("  ix: $ix")
+      # println("  sx: $sx, cx: $cx")
+      # println("  sy: $sy, cy: $cy")
+      # println("  sz: $sz, cz: $cz")
+
       @inbounds transform[i, 1, 1] = cy * cz
       @inbounds transform[i, 1, 2] = sx * sy * cz - cx * sz
       @inbounds transform[i, 1, 3] = cx * sy * cz + sx * sz

@@ -18,6 +18,3 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 julia = "1.6"
-
-[extras]
-JACC = "0979c8fe-16a4-4796-9b82-89a9f10403ea"
