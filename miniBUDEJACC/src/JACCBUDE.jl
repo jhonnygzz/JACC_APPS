@@ -27,16 +27,16 @@ import JACC
 import Pkg
 using Test
 using StaticArrays
+#using JACC
 include("BUDE.jl")
 
 
-# set backend (the only if statement)
 include("BasicBUDEPreferences.jl")
 @static if endswith(BasicBUDEPreferences.backend, "cuda")
     # @TODO Julia Pkg.add will add target = :weakdeps in later versions
     #Pkg.add(; name = "CUDA", version = "v5.1.1")
-    #Pkg.add("CUDA")
-    Pkg.update("CUDA")
+    Pkg.add("CUDA")
+    #Pkg.update("CUDA")
     import CUDA
     println("Using CUDA as back end")
 
@@ -45,8 +45,8 @@ include("BasicBUDEPreferences.jl")
 
 elseif endswith(BasicBUDEPreferences.backend, "amdgpu")
     #Pkg.add(; name = "AMDGPU", version = "v0.8.6")
-    #Pkg.add("AMDGPU")
-    Pkg.update("AMDGPU")
+    Pkg.add("AMDGPU")
+    #Pkg.update("AMDGPU")
     import AMDGPU
     println("Using AMDGPU as back end")
     
@@ -89,7 +89,6 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
 
 
   # warmup
-  start_time = time()
   fasten_main(
     Val(convert(Int, params.wgsize)),
     protein,
@@ -98,9 +97,6 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
     poses,
     etotals,
   )
-  end_time = time()
-  iteration_elapsed = end_time - start_time
-  println("Iteration warmup: $(iteration_elapsed) seconds")
 
 
   # ORIGINAL ELAPSED FROM THREADED.JL
