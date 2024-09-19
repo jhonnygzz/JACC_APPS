@@ -6,9 +6,9 @@ import Base.read
 
 const DefaultInterations = 10
 const DefaultNPoses = 65536
-const RefNPoses = 65536
-const DefaultWGSize = 64
-const DefaultPPWI = 4
+const RefNPoses = 65536 #Number of Poses (number of different orientations and positions of the ligand molecule)
+const DefaultWGSize = 64 # Work group size (divide work into groups)
+const DefaultPPWI = 4 #Poses per work item (A single thread of the GPU will process 4 poses)
 
 const Zero = 0.0f0
 const Quarter = 0.25f0
@@ -68,7 +68,7 @@ end
   iterations::UInt = DefaultInterations
   wgsize::UInt = DefaultWGSize
   ppwi::UInt = DefaultPPWI
-  deck::String = "src/data/bm1"
+  deck::String = "src/data/bm1" #The directory containing the input data files for the simulation.
 end
 
 struct Deck
