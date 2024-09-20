@@ -179,7 +179,7 @@ function default_input()
         1,          # nthreads
         355,        # n_isotopes
         11303,      # n_gridpoints
-        17000000,   # lookups
+        2,   # lookups
         'l',        # HM originally "large"
         0,          # grid_type
         10000,      # hash_bins
@@ -212,8 +212,6 @@ function load_sim_data()
     nuclide_grid = Vector{immutableNuclideGridPoint}(undef, 4012565)
     p_energy_samples = Vector{Float64}(undef, 0)
     mat_samples = Vector{Int32}(undef, 0)
-
-
     length_num_nucs = 12
     length_concs = 3852
     length_mats = 3852
@@ -228,6 +226,10 @@ function load_sim_data()
     for i in 1:length_num_nucs
         num_nucs[i] = parse(Int32, readline(file))
     end
+
+    # Print all data inside num_nucs array
+    println("num_nucs: ", num_nucs)
+
 
     # Read the concs value amount of floats from the file
     for i in 1:length_concs
