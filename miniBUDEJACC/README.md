@@ -16,6 +16,8 @@ println(BasicBUDEPreferences.get_backend())
 exit()
 
 julia --project=. -e 'include("src/JACCBUDE.jl")'
+or
+julia --project=. src/JACCBUDE.jl
 ```
 
 Run profiler ([CUDA](https://cuda.juliagpu.org/stable/development/profiling/)):

@@ -20,6 +20,8 @@
 # Difference between the original CUDA code and this code may be the work distribution affecting the order of operations
 # Can't do print statements of variables inside the kernel function since it is running on the GPU
 # Already compared the output of both JACC-CUDA and CUDA. The output is mostly the same, expect some energies are 0.01 different.
+# TODO: Print the values of the variables. (protein, forcefield, etc)
+# after updating jacc to jacc#main, now the it synchronizes correctly without me having to do cuda.synchronize()
 
 
 
@@ -34,11 +36,13 @@ include("BUDE.jl")
 include("BasicBUDEPreferences.jl")
 @static if endswith(BasicBUDEPreferences.backend, "cuda")
     # @TODO Julia Pkg.add will add target = :weakdeps in later versions
-    #Pkg.add(; name = "CUDA", version = "v5.1.1")
-    Pkg.add("CUDA")
+    Pkg.add(; name = "CUDA", version = "v5.4.3")
+
+    #Pkg.add("CUDA")
     #Pkg.update("CUDA")
     import CUDA
     println("Using CUDA as back end")
+    println("CUDA version: ", CUDA.versioninfo())
 
     device = CUDA.device()
     println("device: $(CUDA.name(device))")
@@ -73,12 +77,14 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
 
   #nposes::Int = size(deck.poses)[2]
   #poses = size(deck.poses)[2]
-
   protein = JACC.Array{Atom}(deck.protein) #The number of atoms in the protein molecule. The protein is typically the larger molecule that the ligand is being docked to.
   ligand = JACC.Array{Atom}(deck.ligand) #The number of atoms in the ligand molecule. The ligand is typically a small molecule that we're trying to dock to the prot
   forcefield = JACC.Array{FFParams}(deck.forcefield) # The number of force field parameters used in the simulation. Force fields define the interactions between atoms and are crucial for calculating the energy of each pose.
   poses = JACC.Array{Float32,2}(deck.poses) #This indicates the number of different orientations and positions of the ligand molecule being tested
   #etotals = JACC.Array{Float32}(undef, poses)
+
+  #forcefield = JACC.shared(forcefield)
+  #println("worked")
 
   etotals = JACC.Array{Float32}(undef, size(deck.poses)[2]) #stores the total energy for each pose.
 
@@ -165,8 +171,22 @@ end
   nligand::Int = length(ligand)
   nprotein::Int = length(protein)
 
+  #println("Type of forcefield: ", typeof(forcefield))
+
+
+  # if isdefined(JACC, :shared)
+  #   println("JACC.shared exists")
+  # else
+  #   println("JACC.shared does not exist")
+  # end
+
+
   #Threads.@threads for group = 1:numGroups (use a function instead)
   function kernel(group, protein, ligand, forcefield, poses, etotals)
+
+    #utilizing shared memory
+    #forcefield_shared = JACC.shared(forcefield)
+    #JACC.shared(forcefield) #Doing this also works, why?
 
     etot = MArray{Tuple{WGSIZE}, Float32}(undef)
     transform = MArray{Tuple{WGSIZE, 3, 4},Float32}(undef)
