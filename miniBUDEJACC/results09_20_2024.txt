@@ -1,0 +1,69 @@
+HUDSON (H100, CUDA):
+
+ORIGINAL MINIBUDE
+NON-SHARED MEMORY:
+- Kernel time:    131.214 ms
+- Average time:   13.121 ms
+- Interactions/s: 121.808 billion
+- GFLOP/s:        3961.305
+- GFInst/s:       3045.202
+
+SHARED MEMORY:
+- Kernel time:    126.578 ms
+- Average time:   12.658 ms
+- Interactions/s: 126.269 billion
+- GFLOP/s:        4106.376
+- GFInst/s:       3156.723
+
+
+JACC MINIBUDE
+NON-SHARED MEMORY:
+- Kernel time:    6601.258 ms
+- Average time:   660.126 ms
+- Interactions/s: 2.421 billion
+- GFLOP/s:        73.063
+- GFInst/s:       60.530
+
+SHARED MEMORY:
+- Kernel time:    6154.933 ms
+- Average time:   615.493 ms
+- Interactions/s: 2.597 billion
+- GFLOP/s:        78.362
+- GFInst/s:       64.919
+
+
+ZENITH (AMDGPU, AMD Radeon RX 6900 XT)
+
+
+ORIGINAL MINIBUDE
+NON-SHARED MEMORY:
+- Kernel time:    2957.644 ms
+- Average time:   295.764 ms
+- Interactions/s: 5.404 billion
+- GFLOP/s:        175.741
+- GFInst/s:       135.098
+
+
+JACC MINIBUDE
+NON-SHARED MEMORY:
+- Kernel time:    2662.448 ms
+- Average time:   266.245 ms
+- Interactions/s: 6.003 billion
+- GFLOP/s:        181.153
+- GFInst/s:       150.077
+
+
+Justify (64 threads) (AMD EPYC 7742 64-Core Processor):
+
+julia --project=Threaded -t 64 src/Threaded.jl
+Original miniBUDE
+NON-SHARED MEMORY:
+
+
+
+
+julia --project=. -e 'include("src/JACCBUDE.jl")' -t 64
+JACC MINIBUDE
+NON-SHARED MEMORY:
+
+
