@@ -179,7 +179,7 @@ function default_input()
         1,          # nthreads
         355,        # n_isotopes
         11303,      # n_gridpoints
-        298,   # lookups
+        17000000,   # lookups
         'l',        # HM originally "large"
         0,          # grid_type
         10000,      # hash_bins
@@ -191,7 +191,7 @@ function default_input()
 end
 
 function load_sim_data()
-    fname = "../../../OLD/XSBench/cuda/SimulationDataTwo.txt"
+    fname = "../../../OLD/XSBench/cuda/SimulationDataThree.txt"
     println("Attempting to open file $fname...")
 
 
@@ -223,14 +223,14 @@ function load_sim_data()
     max_num_nucs = 321
 
     length_num_nucs: 12
-length_concs: 3852
-length_mats: 3852
-length_unionized_energy_array: 4012565
-length_index_grid: 1424460575
-length_nuclide_grid: 4012565
-length_p_energy_samples: 0
-length_mat_samples: 0
-max_num_nucs: 321
+    length_concs: 3852
+    length_mats: 3852
+    length_unionized_energy_array: 4012565
+    length_index_grid: 1424460575
+    length_nuclide_grid: 4012565
+    length_p_energy_samples: 0
+    length_mat_samples: 0
+    max_num_nucs: 321
 
     # Read the num_nucs value amount of integers from the file
     for i in 1:length_num_nucs
@@ -238,7 +238,7 @@ max_num_nucs: 321
     end
 
     # Print all data inside num_nucs array
-    println("num_nucs: ", num_nucs)
+    # println("num_nucs: ", num_nucs)
 
 
     # Read the concs value amount of floats from the file
