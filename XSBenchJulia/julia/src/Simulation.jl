@@ -18,7 +18,7 @@ using Printf
 using Base.MathConstants
 using Decimals
 # import numpy as np
-
+using Dates
 
 
 function test_simulation()
@@ -40,7 +40,7 @@ function test_simulation()
     num_nucs = [321, 5, 4, 4, 27, 21, 21, 21, 21, 21, 9, 9]
     num_nucs = JACC.Array(num_nucs)
 
-    sizeofa = 30
+    sizeofa = 10
     a = zeros(Float64, sizeofa)
     lookups = 17000000
 
@@ -54,96 +54,25 @@ function test_simulation()
         println("a[", i, "] is: ", a_h[i])
     end
 
-    # Original calculation
-    high_energy = 0.546031
-    low_energy = 0.545855
-    p_energy = 0.545872
-
-    # f = (high_energy - p_energy) / (high_energy - low_energy)
-    # println("Original calculation in Julia: $f") # Output: 0.903409
-
-    # # Option 1: Manual rounding
-    # f_rounded = round((high_energy - p_energy) / (high_energy - low_energy), digits=6)
-    # println("Option 1 (Manual rounding): $f_rounded") # Output: 0.901790
-
-    # # Option 2: Use Float32 data type
-    # high_energy_f32 = Float32(high_energy)
-    # low_energy_f32 = Float32(low_energy)
-    # p_energy_f32 = Float32(p_energy)
-
-    # f_f32 = (high_energy_f32 - p_energy_f32) / (high_energy_f32 - low_energy_f32)
-    # println("Option 2 (Float32): $f_f32") # Output: 0.901790
-
-    # Option 1: Use BigFloat with manual rounding
-    high_energy_bf = BigFloat(high_energy)
-    low_energy_bf = BigFloat(low_energy)
-    p_energy_bf = BigFloat(p_energy)
-
-    # Option 1: Use BigFloat for high precision
-    f_bf = (high_energy_bf - p_energy_bf) / (high_energy_bf - low_energy_bf)
-    f_bf_rounded = @sprintf("%.6f", f_bf)
-    println("Option 1 (BigFloat): $f_bf_rounded") # Output: 0.901790
-
-    # Option 2: Use ldexp with precise calculation
-    numerator = high_energy - p_energy
-    denominator = high_energy - low_energy
-
-    f_ldexp = ldexp(numerator, -3) / ldexp(denominator, -3)
-    println("Option 2 (ldexp): $f_ldexp") # Output: 0.901790
-
-
 end
 
 function test_kernel(lookups, dist_d, a, num_nucs)
-    # # Set the initial seed value
-    # seed = UInt64(STARTING_SEED)
 
-    # n = UInt64((lookups - 1) * 2)
-    # # Forward seed to lookup index (we need 2 samples per lookup)
-    # # seed = fast_forward_LCG_test(seed, n)  # Functional !!
-    # seed = fast_forward_LCG(seed, n, a)  # Functional !!
-    # # a[lookups] = seed
+    x1 = 7
+    a[1] = x1
 
-    # # Randomly pick an energy and material for the particle
-    # # p_energy, seed = LCG_random_double(seed, a) # Functional !!
-    # p_energy, seed = LCG_random_double_test(seed) # Functional !!
+    x1_ref = Ref(x1)
 
-    # mat, seed = pick_mat_test(seed, a, lookups, dist_d) # Functional !!!
+    x1_ref[] = 5
+
+    a[2] = x1
+
 
     
-    # if lookups == 297
-    #     a[1] = seed
-    #     a[2] = p_energy
-    #     a[3] = mat
-    # end
+end
 
-
-
-    # a[lookups] = mat
-
-    # a[lookups + 40] = num_nucs[mat + 1]
-
-
-    high_energy = 0.546031
-    low_energy = 0.545855
-    p_energy = 0.545872
-
-
-    f = (high_energy - p_energy) / (high_energy - low_energy)
-    
-    a[1] = f
-    a[2] = high_energy - p_energy
-    a[3] = high_energy - low_energy
-    numerator = high_energy - p_energy
-    denominator = high_energy - low_energy
-
-    a[4] = round(round(numerator,digits = 6) / round(denominator, digits = 6), digits = 6)
-    a[5] = round(a[2] / a[3], digits = 6)
-
-    a[6] = numerator
-    a[7] = denominator
-
-    
+function returnFiveFloats()
+    return 1.0, 2.0, 3.0, 4.0, 5.0
 end
 
 function LCG_random_double_test(seed::UInt64)
@@ -203,13 +132,6 @@ end
 function pick_mat_test(seed::UInt64, a, lookups, dist_d)
     # Generate random number and update seed
     roll, new_seed = LCG_random_double_test(seed)
-    # if lookups == 1
-    #     a[31] = roll
-    # end
-    # if lookups == 2
-    #     a[32] = roll
-    # end
-    #    a[lookups + 20] = roll
 
     for i in 0:11  # Changed to 0-based indexing
         running = 0.0
@@ -217,27 +139,16 @@ function pick_mat_test(seed::UInt64, a, lookups, dist_d)
             running += dist_d[j+1]  # Add 1 to index into dist array
         end
         if roll < running
-            # println("Running: $running")
-            # a[lookups + 30] = i
-            # a[lookups + 35] = running
             return i, new_seed  # Return i, not i+1
         end
     end
     return 0, new_seed  # Return 0, not 12
-    
 end
 
 
 function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutableSimulationData)
 
     println("Running baseline event-based simulation...")
-    # Create JACC Arrays of all array data inside SD
-    # num_nucs_d = JACC.Array(SD.num_nucs)
-    # concs_d = JACC.Array(SD.concs)
-    # unionized_energy_array_d = JACC.Array(SD.unionized_energy_array)
-    # index_grid_d = JACC.Array(SD.index_grid)
-    # nuclide_grid_d = JACC.Array(SD.nuclide_grid)
-    # mats_d = JACC.Array(SD.mats)
     mat_samples_d = JACC.Array(SD.mat_samples) # Not done yet
     p_energy_samples_d = JACC.Array(SD.p_energy_samples) # Not done yet
 
@@ -294,48 +205,77 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     end
     nuclide_grid = JACC.Array(SD.nuclide_grid)
     verification = JACC.Array(zeros(UInt64, in.lookups))
-
-    na = zeros(Float64, 200)
+    sizeofa = 50
+    na = zeros(Float64, sizeofa)
     a = JACC.Array(na)
 
     ba = zeros(Float64, 5)
     b = JACC.Array(ba)
 
-    v = JACC.zeros(Float64, 3 + 2, 3 + 2, 3 + 2)
-
-    
-
-    # @allowscalar println("a before is: ", a[1])
-
-    # JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
-    # mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification)
-
     test_macro_xs_vector = JACC.Array(zeros(Float64, 5, in.lookups))
     test_xs_vector = JACC.Array(zeros(Float64, 5, in.lookups))
-    # setPrecision(256)
+
+
+
+
+    
+    verification_hash = 0
     JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
     CUDA.synchronize()
+
+
+    start_time = time_ns()  # Start time in nanoseconds
     
-    println("Simulation Complete.")
+    for i in 1:10
+        
+        JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
+        mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
+        CUDA.synchronize()
+        verification_h = Array(verification)
+        verification_hash = 0
+        for i in 1:in.lookups
+            verification_hash += verification_h[i]
+        end
+    end
+    end_time = time_ns()    
+
+    total_time_ms = (end_time - start_time) / 1_000_000 
+
+    println("Total Time taken: ", total_time_ms / 1000.0, " seconds")
+
+    # Convert the average to seconds
+    average_time_seconds = total_time_ms / 10.0 / 1000.0
+    println("Average Time per iteration: ", average_time_seconds, " seconds")
+
+
+    
+    
+
+    # println("Simulation Complete.")
     na = Array(a)
+
+    # # Print data in na
+    # for i in 1:sizeofa
+    #     println("a[", i, "] is: ", na[i])
+    # end
+
     xs_vector_two = Array(xs_vector)
     macro_xs_vector_two = Array(macro_xs_vector)
 
-
+    
     verification_h = Array(verification)
-    verification_hash = 0
 
     # Save verification_h array to a file
     verification_h_array = Array(verification_h)
     writedlm("verification_h_data_tests.txt", verification_h_array)
-    for i in 1:in.lookups
-        verification_hash += verification_h[i]
-    end
+
     verificationF = verification_hash % 999983
     
     if verificationF == 952131
-        println("Verification: Passed")
+        # Print the following "Verification checksum: *insert verificationF here* (Valid)"
+        println("Verification: Checksum: ", verificationF, " (Valid)")
+
     else
         println("Verification: Failed, Expected: 952131, Actual: ", verificationF)
     end
@@ -433,11 +373,11 @@ end
 function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
 
-    for k in 1:5
-        xs_vector[k] = 0.0
-        test_xs_vector[k, lookups] = 0.0
-        test_macro_xs_vector[k, lookups] = 0.0
-    end
+    # for k in 1:5
+    #     xs_vector[k] = 0.0
+    #     test_xs_vector[k, lookups] = 0.0
+    #     test_macro_xs_vector[k, lookups] = 0.0
+    # end
     
     # Set the initial seed value
     seed = UInt64(STARTING_SEED)
@@ -456,9 +396,9 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
     end
 
 	# Perform macroscopic Cross Section Lookup
-    macro_xs(macro_xs_vector, a, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
-    mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, lookups, b, test_macro_xs_vector, test_xs_vector)
 
+    macro_xs_1, macro_xs_2, macro_xs_3, macro_xs_4, macro_xs_5 = macro_xs(macro_xs_vector, a, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
+    mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, lookups, b, test_macro_xs_vector, test_xs_vector)
 
     # # For verification, and to prevent the compiler from optimizing
 	# # all work out, we interrogate the returned macro_xs_vector array
@@ -466,38 +406,37 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
 	# # value by that index. In this implementation, we have each thread
 	# # write to its thread_id index in an array, which we will reduce
 	# # with a thrust reduction kernel after the main simulation kernel.
-    max = -1.0
-    max_idx = 1
-
-    for j in 1:5
-        if test_macro_xs_vector[j, lookups] > max
-            max = test_macro_xs_vector[j, lookups]
-            max_idx = j
-        end
-    end
-
-    verification[lookups] = max_idx
-
-    # if lookups == 1674
-       
-    #     a[31] = test_macro_xs_vector[1, lookups]
-    #     a[32] = test_macro_xs_vector[2, lookups]
-    #     a[33] = test_macro_xs_vector[3, lookups]
-    #     a[34] = test_macro_xs_vector[4, lookups]
-    #     a[35] = test_macro_xs_vector[5, lookups]
-    # end
-
-    # if lookups == 25
-    #     a[37] = test_macro_xs_vector[1, lookups]
-    #     a[38] = test_macro_xs_vector[2, lookups]
-    #     a[39] = test_macro_xs_vector[3, lookups]
-    #     a[40] = test_macro_xs_vector[4, lookups]
-    #     a[41] = test_macro_xs_vector[5, lookups]
-    # end
 
     
 
- 
+
+    max = -1.0
+    max_idx = 1
+
+    max = macro_xs_1
+    max_idx = 1
+
+    if macro_xs_2 > max
+        max = macro_xs_2
+        max_idx = 2
+    end
+
+    if macro_xs_3 > max
+        max = macro_xs_3
+        max_idx = 3
+    end
+
+    if macro_xs_4 > max
+        max = macro_xs_4
+        max_idx = 4
+    end
+
+    if macro_xs_5 > max
+        max = macro_xs_5
+        max_idx = 5
+    end
+
+    verification[lookups] = max_idx
 
 end
 
@@ -517,10 +456,7 @@ end
     idx = -1
     conc = 0.0 # the concentration of the nuclide in the material
     
-    # cleans out macro_xs_vector
-    for k in 1:5
-        macro_xs_vector[k] = 0.0
-    end
+
 
     # If we are using the unionized energy grid (UEG), we only
 	# need to perform 1 binary search per macroscopic lookup.
@@ -547,31 +483,56 @@ end
 	#  or otherwise control access to the xs_vector and macro_xs_vector to
 	#  avoid simulataneous writing to the same data structure)
 
+    macro_xs_1 = 0.0
+    macro_xs_2 = 0.0
+    macro_xs_3 = 0.0
+    macro_xs_4 = 0.0
+    macro_xs_5 = 0.0
+
+    
     for j in 1:num_nucs[mat + 1]
-        for k in 1:5
-            xs_vector[k] = 0.0
-        end
-        
         # local_xs_vector = MArray{Tuple{5},Float64}(undef)
         p_nuc = mats[mat * max_num_nucs + j]
         conc = concs[mat * max_num_nucs + j]
 
-        calculate_micro_xs(p_energy, a, p_nuc, n_isotopes, n_gridpoints, egrid, index_data,
-        nuclide_grids, idx, xs_vector, grid_type, hash_bins, lookups, j, conc, test_xs_vector)
+        vec1 = 0
+        vec1_ref = Ref(vec1)
 
-        for k in 1:5
-            # macro_xs_vector[k] += xs_vector[k] * conc
-            test_macro_xs_vector[k, lookups] += test_xs_vector[k, lookups] * conc
-        end
+        total_xs = 0.0
+        elastic_xs = 0.0
+        absorbtion_xs = 0.0
+        fission_xs = 0.0
+        nu_fission_xs = 0.0
+
+
+        total_xs, elastic_xs, absorbtion_xs, fission_xs, nu_fission_xs = calculate_micro_xs(p_energy, a, p_nuc, n_isotopes, n_gridpoints, egrid, index_data, nuclide_grids, idx, xs_vector, grid_type, hash_bins, lookups, j, conc, test_xs_vector, vec1_ref)
+
+
+        a[2] = vec1
+
+        # for k in 1:5
+            # test_macro_xs_vector[k, lookups] += test_xs_vector[k, lookups] * conc
+        # test_macro_xs_vector[1, lookups] += total_xs * conc 
+        # test_macro_xs_vector[2, lookups] += elastic_xs * conc
+        # test_macro_xs_vector[3, lookups] += absorbtion_xs * conc
+        # test_macro_xs_vector[4, lookups] += fission_xs * conc
+        # test_macro_xs_vector[5, lookups] += nu_fission_xs * conc
+        # end
+        macro_xs_1 += total_xs * conc
+        macro_xs_2 += elastic_xs * conc
+        macro_xs_3 += absorbtion_xs * conc
+        macro_xs_4 += fission_xs * conc
+        macro_xs_5 += nu_fission_xs * conc
 
     end
+    return macro_xs_1, macro_xs_2, macro_xs_3, macro_xs_4, macro_xs_5
 end
 
 
 @inline function calculate_micro_xs(p_energy::Float64, a, nuc::Int, n_isotopes::Int64,
     n_gridpoints::Int64, egrid,
     index_data, nuclide_grids,
-    idx::Int64, xs_vector, grid_type::Int, hash_bins::Int, lookups, j, conc, test_xs_vector)
+    idx::Int64, xs_vector, grid_type::Int, hash_bins::Int, lookups, j, conc, test_xs_vector, vec1_ref)
 
     # Variables
     f = 0.0
@@ -649,18 +610,28 @@ end
     # Interpolation factor
     f = Float64(Float64((high.energy - p_energy)) / Float64((high.energy - low.energy)))
 
-    # xs_vector[1] = high.total_xs - round(f * (high.total_xs - low.total_xs), digits = 6)
-    # xs_vector[2] = high.elastic_xs - round(f * (high.elastic_xs - low.elastic_xs), digits = 6)
-    # xs_vector[3] = high.absorbtion_xs - round(f * (high.absorbtion_xs - low.absorbtion_xs), digits = 6)
-    # xs_vector[4] = high.fission_xs - round(f * (high.fission_xs - low.fission_xs), digits = 6)
-    # xs_vector[5] = high.nu_fission_xs - round(f * (high.nu_fission_xs - low.nu_fission_xs), digits = 6)
+    # // Total XS
+    # test_xs_vector[1, lookups] = Float64(high.total_xs) - Float64(f * (high.total_xs - low.total_xs))
+    total_xs = Float64(high.total_xs) - Float64(f * (high.total_xs - low.total_xs))
 
-    test_xs_vector[1, lookups] = Float64(high.total_xs) - Float64(f * (high.total_xs - low.total_xs))
-    test_xs_vector[2, lookups] = Float64(high.elastic_xs) - Float64(f * (high.elastic_xs - low.elastic_xs))
-    test_xs_vector[3, lookups] = Float64(high.absorbtion_xs) - Float64(f * (high.absorbtion_xs - low.absorbtion_xs))
-    test_xs_vector[4, lookups] = Float64(high.fission_xs) - Float64(f * (high.fission_xs - low.fission_xs))
-    test_xs_vector[5, lookups] = Float64(high.nu_fission_xs) - Float64(f * (high.nu_fission_xs - low.nu_fission_xs))
+    # Elastic XS
+    # test_xs_vector[2, lookups] = Float64(high.elastic_xs) - Float64(f * (high.elastic_xs - low.elastic_xs))
+    elastic_xs = Float64(high.elastic_xs) - Float64(f * (high.elastic_xs - low.elastic_xs))
 
+    # Absorbtion XS
+    # test_xs_vector[3, lookups] = Float64(high.absorbtion_xs) - Float64(f * (high.absorbtion_xs - low.absorbtion_xs))
+    absorbtion_xs = Float64(high.absorbtion_xs) - Float64(f * (high.absorbtion_xs - low.absorbtion_xs))
+
+    # Fission XS
+    # test_xs_vector[4, lookups] = Float64(high.fission_xs) - Float64(f * (high.fission_xs - low.fission_xs))
+    fission_xs = Float64(high.fission_xs) - Float64(f * (high.fission_xs - low.fission_xs))
+
+    # Nu Fission XS
+    # test_xs_vector[5, lookups] = Float64(high.nu_fission_xs) - Float64(f * (high.nu_fission_xs - low.nu_fission_xs)) 
+    nu_fission_xs = Float64(high.nu_fission_xs) - Float64(f * (high.nu_fission_xs - low.nu_fission_xs))
+
+
+    return total_xs, elastic_xs, absorbtion_xs, fission_xs, nu_fission_xs
 end
 
 function grid_search_nuclide(n::Int64, quarry::Float64, A, low::Int64, high::Int64, offset)
