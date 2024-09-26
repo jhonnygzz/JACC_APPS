@@ -109,18 +109,18 @@ end
 function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutableSimulationData)
 
     println("Running baseline event-based simulation...")
-    mat_samples_d = JACC.Array(SD.mat_samples) # Not done yet
-    p_energy_samples_d = JACC.Array(SD.p_energy_samples) # Not done yet
+    # mat_samples_d = JACC.Array(SD.mat_samples) # Not done yet
+    # p_energy_samples_d = JACC.Array(SD.p_energy_samples) # Not done yet
 
-    length_num_nucs = length(SD.num_nucs)
-    length_concs = length(SD.concs)
-    length_unionized_energy_array = length(SD.unionized_energy_array)
-    length_index_grid = length(SD.index_grid)
-    length_nuclide_grid = length(SD.nuclide_grid)
-    length_mats = length(SD.mats)
-    length_mat_samples = length(SD.mat_samples)
-    length_p_energy_samples = length(SD.p_energy_samples)
-    max_num_nucs = SD.max_num_nucs
+    # length_num_nucs = length(SD.num_nucs)
+    # length_concs = length(SD.concs)
+    # length_unionized_energy_array = length(SD.unionized_energy_array)
+    # length_index_grid = length(SD.index_grid)
+    # length_nuclide_grid = length(SD.nuclide_grid)
+    # length_mats = length(SD.mats)
+    # length_mat_samples = length(SD.mat_samples)
+    # length_p_energy_samples = length(SD.p_energy_samples)
+    # max_num_nucs = SD.max_num_nucs
 
     # println(length_nuclide_grid)
 
@@ -187,16 +187,15 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
 
     start_time = time_ns()  # Start time in nanoseconds
     
-    for i in 1:10
-        
+    for i in 1:10   
+        # verification = JACC.Array(zeros(UInt64, in.lookups))
         JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
         mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
         CUDA.synchronize()
         verification_h = Array(verification)
+        
         verification_hash = 0
-        @inbounds for i in 1:in.lookups
-            verification_hash += verification_h[i]
-        end
+        verification_hash = sum(verification_h[1:in.lookups])
     end
     end_time = time_ns()    
 
@@ -208,8 +207,6 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     average_time_seconds = total_time_ms / 10.0 / 1000.0
     println("Average Time per iteration: ", average_time_seconds, " seconds")
 
-
-    JACC
     
 
     # println("Simulation Complete.")
