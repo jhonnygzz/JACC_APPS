@@ -71,10 +71,6 @@ function test_kernel(lookups, dist_d, a, num_nucs)
     
 end
 
-function returnFiveFloats()
-    return 1.0, 2.0, 3.0, 4.0, 5.0
-end
-
 function LCG_random_double_test(seed::UInt64)
     # LCG parameters
     m::UInt64 = 9223372036854775808  # 2^63
@@ -92,42 +88,6 @@ function LCG_random_double_test(seed::UInt64)
     return formatted_result, seed
 end
 
-function LCG_random_double(seed::UInt64, b)
-    # LCG parameters
-    m::UInt64 = 9223372036854775808  # 2^63
-    a::UInt64 = 2806196910506780709
-    c::UInt64 = 0x0000000000000001
-
-    # Calculate new seed
-    new_seed = (a * seed + c) % m
-
-    
-    # Return the new random number and the updated seed
-    return (Float64(new_seed) / Float64(m)), new_seed
-end
-
-function fast_forward_LCG_test(seed::UInt64, n::UInt64)::UInt64
-    m = UInt64(9223372036854775808) # 2^63
-    a = UInt64(2806196910506780709)
-    c = UInt64(1)
-
-    n = n % m
-
-    a_new = UInt64(1)
-    c_new = UInt64(0)
-
-    while n > 0
-        if n & 1 != 0
-            a_new = (a_new * a) % m
-            c_new = (c_new * a + c) % m
-        end
-        c = (c * (a + 1)) % m
-        a = (a * a) % m
-        n >>= 1
-    end
-
-    return (a_new * seed + c_new) % m
-end
 
 function pick_mat_test(seed::UInt64, a, lookups, dist_d)
     # Generate random number and update seed
@@ -234,7 +194,7 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
         CUDA.synchronize()
         verification_h = Array(verification)
         verification_hash = 0
-        for i in 1:in.lookups
+        @inbounds for i in 1:in.lookups
             verification_hash += verification_h[i]
         end
     end
@@ -249,7 +209,7 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     println("Average Time per iteration: ", average_time_seconds, " seconds")
 
 
-    
+    JACC
     
 
     # println("Simulation Complete.")
@@ -331,54 +291,10 @@ end
 
 
 
-function pick_mat(seed::UInt64, a, lookups)
-    # Generate random number and update seed
-    roll, new_seed = LCG_random_double(seed, a)
-    # if lookups == 1
-    #     a[31] = roll
-    # end
-    # if lookups == 2
-    #     a[32] = roll
-    # end
-   
-    # Cumulative distribution
-    if roll < 0.140
-        return 1, new_seed  # fuel
-    elseif roll < 0.140 + 0.052
-        return 2, new_seed  # cladding
-    elseif roll < 0.140 + 0.052 + 0.275
-        return 3, new_seed  # cold, borated water
-    elseif roll < 0.140 + 0.052 + 0.275 + 0.134
-        return 4, new_seed  # hot, borated water
-    elseif roll < 0.140 + 0.052 + 0.275 + 0.134 + 0.154
-        return 5, new_seed  # RPV
-    elseif roll < 0.140 + 0.052 + 0.275 + 0.134 + 0.154 + 0.064
-        return 6, new_seed  # Lower, radial reflector
-    elseif roll < 0.140 + 0.052 + 0.275 + 0.134 + 0.154 + 0.064 + 0.066
-        return 7, new_seed  # Upper reflector / top plate
-    elseif roll < 0.140 + 0.052 + 0.275 + 0.134 + 0.154 + 0.064 + 0.066 + 0.055
-        return 8, new_seed  # bottom plate
-    elseif roll < 0.140 + 0.052 + 0.275 + 0.134 + 0.154 + 0.064 + 0.066 + 0.055 + 0.008
-        return 9, new_seed  # bottom nozzle
-    elseif roll < 0.140 + 0.052 + 0.275 + 0.134 + 0.154 + 0.064 + 0.066 + 0.055 + 0.008 + 0.015
-        return 10, new_seed  # top nozzle
-    elseif roll < 0.140 + 0.052 + 0.275 + 0.134 + 0.154 + 0.064 + 0.066 + 0.055 + 0.008 + 0.015 + 0.025
-        return 11, new_seed  # top of fuel assemblies
-    else
-        return 12, new_seed  # bottom of fuel assemblies
-    end
-    
-end
 
 function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
 
-    # for k in 1:5
-    #     xs_vector[k] = 0.0
-    #     test_xs_vector[k, lookups] = 0.0
-    #     test_macro_xs_vector[k, lookups] = 0.0
-    # end
-    
     # Set the initial seed value
     seed = UInt64(STARTING_SEED)
     n = UInt64((lookups - 1) * 2)
@@ -389,11 +305,6 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
     # Randomly pick an energy and material for the particle
     p_energy, seed = LCG_random_double_test(seed) # Functional !!
     mat, seed = pick_mat_test(seed, a, lookups, dist_d) # Functional !!!
-
-    # Set macro_xs_vector to 0
-    for k in 1:5
-        macro_xs_vector[k] = 0.0
-    end
 
 	# Perform macroscopic Cross Section Lookup
 
@@ -407,11 +318,6 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
 	# # write to its thread_id index in an array, which we will reduce
 	# # with a thrust reduction kernel after the main simulation kernel.
 
-    
-
-
-    max = -1.0
-    max_idx = 1
 
     max = macro_xs_1
     max_idx = 1
@@ -440,23 +346,12 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
 
 end
 
-@inline function reset(xs_vector)
-    for k in 1:5
-        xs_vector[k] = 0.0
-    end
-end
-
 @inline function macro_xs(macro_xs_vector, a, grid_type, n_isotopes, n_gridpoints, p_energy, egrid, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_data, nuclide_grids, lookups, b, test_macro_xs_vector, test_xs_vector)
-    for k in 1:5
-        xs_vector[k] = 0.0
-    end
 
     p_nuc = 0 # the nuclide we are looking up
     idx = -1
     conc = 0.0 # the concentration of the nuclide in the material
-    
-
 
     # If we are using the unionized energy grid (UEG), we only
 	# need to perform 1 binary search per macroscopic lookup.
@@ -471,7 +366,7 @@ end
         du = 1.0 / hash_bins
         idx = Int(p_energy / du)
     end
-    
+
     # Once we find the pointer array on the UEG, we can pull the data
 	# from the respective nuclide grids, as well as the nuclide
 	# concentration data for the material
@@ -482,60 +377,34 @@ end
 	# (Independent -- though if parallelizing, must use atomic operations
 	#  or otherwise control access to the xs_vector and macro_xs_vector to
 	#  avoid simulataneous writing to the same data structure)
-
     macro_xs_1 = 0.0
     macro_xs_2 = 0.0
     macro_xs_3 = 0.0
     macro_xs_4 = 0.0
     macro_xs_5 = 0.0
 
-    
-    for j in 1:num_nucs[mat + 1]
-        # local_xs_vector = MArray{Tuple{5},Float64}(undef)
+    @inbounds for j in 1:num_nucs[mat + 1]
         p_nuc = mats[mat * max_num_nucs + j]
         conc = concs[mat * max_num_nucs + j]
 
-        vec1 = 0
-        vec1_ref = Ref(vec1)
+        total_xs, elastic_xs, absorbtion_xs, fission_xs, nu_fission_xs = calculate_micro_xs(p_energy, a, p_nuc, n_isotopes, n_gridpoints, egrid, index_data, nuclide_grids, idx, xs_vector, grid_type, hash_bins, lookups, j, conc, test_xs_vector)
 
-        total_xs = 0.0
-        elastic_xs = 0.0
-        absorbtion_xs = 0.0
-        fission_xs = 0.0
-        nu_fission_xs = 0.0
-
-
-        total_xs, elastic_xs, absorbtion_xs, fission_xs, nu_fission_xs = calculate_micro_xs(p_energy, a, p_nuc, n_isotopes, n_gridpoints, egrid, index_data, nuclide_grids, idx, xs_vector, grid_type, hash_bins, lookups, j, conc, test_xs_vector, vec1_ref)
-
-
-        a[2] = vec1
-
-        # for k in 1:5
-            # test_macro_xs_vector[k, lookups] += test_xs_vector[k, lookups] * conc
-        # test_macro_xs_vector[1, lookups] += total_xs * conc 
-        # test_macro_xs_vector[2, lookups] += elastic_xs * conc
-        # test_macro_xs_vector[3, lookups] += absorbtion_xs * conc
-        # test_macro_xs_vector[4, lookups] += fission_xs * conc
-        # test_macro_xs_vector[5, lookups] += nu_fission_xs * conc
-        # end
         macro_xs_1 += total_xs * conc
         macro_xs_2 += elastic_xs * conc
         macro_xs_3 += absorbtion_xs * conc
         macro_xs_4 += fission_xs * conc
         macro_xs_5 += nu_fission_xs * conc
-
     end
     return macro_xs_1, macro_xs_2, macro_xs_3, macro_xs_4, macro_xs_5
 end
 
-
 @inline function calculate_micro_xs(p_energy::Float64, a, nuc::Int, n_isotopes::Int64,
     n_gridpoints::Int64, egrid,
     index_data, nuclide_grids,
-    idx::Int64, xs_vector, grid_type::Int, hash_bins::Int, lookups, j, conc, test_xs_vector, vec1_ref)
+    idx::Int64, xs_vector, grid_type::Int, hash_bins::Int, lookups, j, conc, test_xs_vector)
 
     # Variables
-    f = 0.0
+    # f = 0.0
     low = immutableNuclideGridPoint(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     high = immutableNuclideGridPoint(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     low_idx = 1
@@ -606,30 +475,23 @@ end
     # Get the higher energy grid point
     high = nuclide_grids[low_idx + 1]
 
-
     # Interpolation factor
     f = Float64(Float64((high.energy - p_energy)) / Float64((high.energy - low.energy)))
 
     # // Total XS
-    # test_xs_vector[1, lookups] = Float64(high.total_xs) - Float64(f * (high.total_xs - low.total_xs))
     total_xs = Float64(high.total_xs) - Float64(f * (high.total_xs - low.total_xs))
 
     # Elastic XS
-    # test_xs_vector[2, lookups] = Float64(high.elastic_xs) - Float64(f * (high.elastic_xs - low.elastic_xs))
     elastic_xs = Float64(high.elastic_xs) - Float64(f * (high.elastic_xs - low.elastic_xs))
 
     # Absorbtion XS
-    # test_xs_vector[3, lookups] = Float64(high.absorbtion_xs) - Float64(f * (high.absorbtion_xs - low.absorbtion_xs))
     absorbtion_xs = Float64(high.absorbtion_xs) - Float64(f * (high.absorbtion_xs - low.absorbtion_xs))
 
     # Fission XS
-    # test_xs_vector[4, lookups] = Float64(high.fission_xs) - Float64(f * (high.fission_xs - low.fission_xs))
     fission_xs = Float64(high.fission_xs) - Float64(f * (high.fission_xs - low.fission_xs))
 
     # Nu Fission XS
-    # test_xs_vector[5, lookups] = Float64(high.nu_fission_xs) - Float64(f * (high.nu_fission_xs - low.nu_fission_xs)) 
     nu_fission_xs = Float64(high.nu_fission_xs) - Float64(f * (high.nu_fission_xs - low.nu_fission_xs))
-
 
     return total_xs, elastic_xs, absorbtion_xs, fission_xs, nu_fission_xs
 end
@@ -640,7 +502,6 @@ function grid_search_nuclide(n::Int64, quarry::Float64, A, low::Int64, high::Int
     length = upperLimit - lowerLimit
     
     examinationPoint = lowerLimit + (length ÷ 2)
-    # a[1] = length + 2
     while length > 1
         examinationPoint = lowerLimit + (length ÷ 2)
         
