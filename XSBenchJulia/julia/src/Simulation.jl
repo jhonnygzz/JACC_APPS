@@ -180,22 +180,26 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
 
     
     verification_hash = 0
+
+    # Warmup
     JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
-    CUDA.synchronize()
-
+    # CUDA.synchronize()
+    verification_hash_two = JACC.parallel_reduce(in.lookups, reduce, verification)
 
     start_time = time_ns()  # Start time in nanoseconds
+
     
     for i in 1:10   
         # verification = JACC.Array(zeros(UInt64, in.lookups))
         JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
         mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
-        CUDA.synchronize()
-        verification_h = Array(verification)
-        
-        verification_hash = 0
-        verification_hash = sum(verification_h[1:in.lookups])
+        # CUDA.synchronize()
+        # verification_hash = sum(verification[1:in.lookups])
+        # verification_hash = JACC.parallel_reduce(in.lookups, reduce, verification)
+        verification_hash_two = JACC.parallel_reduce(in.lookups, reduce, verification)
+        # println(verification_hash)
+        # CUDA.synchronize()
     end
     end_time = time_ns()    
 
@@ -207,18 +211,16 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     average_time_seconds = total_time_ms / 10.0 / 1000.0
     println("Average Time per iteration: ", average_time_seconds, " seconds")
 
-    
-
     # println("Simulation Complete.")
     na = Array(a)
 
+    two = Array(verification_hash_two)
+
+    println("two is: ", two)
     # # Print data in na
     # for i in 1:sizeofa
     #     println("a[", i, "] is: ", na[i])
     # end
-
-    xs_vector_two = Array(xs_vector)
-    macro_xs_vector_two = Array(macro_xs_vector)
 
     
     verification_h = Array(verification)
@@ -227,20 +229,23 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     verification_h_array = Array(verification_h)
     writedlm("verification_h_data_tests.txt", verification_h_array)
 
-    verificationF = verification_hash % 999983
+    # verificationF = verification_hash % 999983
+    calc = two[1] % 999983
+    println("Two[1] % 999983: ", two[1] % 999983)
     
-    if verificationF == 952131
+    if calc == 952131
         # Print the following "Verification checksum: *insert verificationF here* (Valid)"
-        println("Verification: Checksum: ", verificationF, " (Valid)")
+        println("Verification: Checksum: ", calc, " (Valid)")
 
     else
-        println("Verification: Failed, Expected: 952131, Actual: ", verificationF)
+        println("Verification: Failed, Expected: 952131, Actual: ", calc)
     end
-    
-
 
 end
 
+function reduce(lookups, verification)
+    verification[lookups]
+end
 
 
 function grid_search(n::Int64, quarry::Float64, A)::Int64
@@ -338,7 +343,7 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
         max = macro_xs_5
         max_idx = 5
     end
-
+    #  Look for max function in Julia
     verification[lookups] = max_idx
 
 end
