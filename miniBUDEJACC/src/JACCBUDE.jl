@@ -171,6 +171,8 @@ end
   nligand::Int = length(ligand)
   nprotein::Int = length(protein)
 
+  #println("Printing value of forcefield: ", forcefield)
+
   #println("Type of forcefield: ", typeof(forcefield))
 
 
@@ -185,8 +187,10 @@ end
   function kernel(group, protein, ligand, forcefield, poses, etotals)
 
     #utilizing shared memory
+    #JACC.shared(ligand) #this also works, which does not make sense.
     #forcefield_shared = JACC.shared(forcefield)
     #JACC.shared(forcefield) #Doing this also works, why?
+    #CUDA.sync_threads()
 
     etot = MArray{Tuple{WGSIZE}, Float32}(undef)
     transform = MArray{Tuple{WGSIZE, 3, 4},Float32}(undef)
@@ -205,7 +209,6 @@ end
       # println("  sx: $sx, cx: $cx")
       # println("  sy: $sy, cy: $cy")
       # println("  sz: $sz, cz: $cz")
-
       @inbounds transform[i, 1, 1] = cy * cz
       @inbounds transform[i, 1, 2] = sx * sy * cz - cx * sz
       @inbounds transform[i, 1, 3] = cx * sy * cz + sx * sz
