@@ -52,7 +52,7 @@ end
 
 function default_input()
     return Input(
-        1,          # nthreads
+        192,          # nthreads
         355,        # n_isotopes
         11303,      # n_gridpoints
         17000000,   # lookups

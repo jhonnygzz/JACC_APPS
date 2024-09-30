@@ -1,0 +1,35 @@
+DEFAULT PARAMETERS 17000000 Iterations
+
+CUDA (NVIDIA H100 NVL)
+
+XSBench:
+Runtime:     0.060 seconds
+Lookups:     17,000,000
+
+XSBenchJulia JACC:
+Runtime:     0.108 seconds
+Lookups:     17,000,000
+======================================================
+
+AMDGPU (AMD MI100 32 GB GPUs)
+
+XSBench:
+Runtime:     0.409 seconds
+Lookups:     17,000,000
+
+XSBenchJulia JACC:
+Does not run
+
+======================================================
+
+Threads:
+
+miniBUDE:
+Threads:     192
+Runtime:     0.547 seconds
+Lookups:     17,000,000
+
+XSBenchJulia JACC:
+Threads:     192
+Runtime:     0.770 seconds
+Lookups:     17,000,000

@@ -23,13 +23,6 @@ function main()
     println("Calculating macro cross section...")
     Simulation.run_event_based_simulation(in, SD)
 
-    # Print all data inside SD
-
-    # print
-
-    
-    
-    # Simulation.simulation_ex()
 
     # Simulation.test_simulation()
 

@@ -1,13 +1,13 @@
 module Simulation
 include("LoadData.jl")
 using .LoadData
-import Cthulhu
-using .Cthulhu
-import CUDA
-using .CUDA
+# import Cthulhu
+# using .Cthulhu
 # using .julia
 export run_event_based_simulation, hello
 import JACC
+import Pkg
+
 # Grid types
 const UNIONIZED = 0
 const NUCLIDE = 1
@@ -19,6 +19,48 @@ using Base.MathConstants
 using Decimals
 # import numpy as np
 using Dates
+
+
+
+# set backend
+include("BasicXSBenchPreferences.jl")
+@static if endswith(BasicXSBenchPreferences.backend, "cuda")
+    # @TODO Julia Pkg.add will add target = :weakdeps in later versions
+    Pkg.add(; name = "CUDA", version = "v5.4.3")
+    
+    # Pkg.add("CUDA")
+    # Pkg.update("CUDA")
+    import CUDA
+    # using CUDA
+    CUDA.set_runtime_version!(v"12.1.0")  # Replace with a supported CUDA version
+
+    # pkg = Base.PkgId(Base.UUID("76a88914-d11a-5bdc-97e0-2f5a05c973a2"), "CUDA_Runtime_jll")
+    # Base.compilecache(pkg)
+
+    # CUDA.set_runtime_version!(v"11.2")  # Replace with your installed CUDA version
+    println("Using CUDA as back end")
+    println("CUDA version: ", CUDA.versioninfo())
+
+    device = CUDA.device()
+    println("device: $(CUDA.name(device))")
+
+elseif endswith(BasicXSBenchPreferences.backend, "amdgpu")
+    # Pkg.add(; name = "AMDGPU", version = "v0.8.11")
+    Pkg.add("AMDGPU")
+    Pkg.update("AMDGPU")
+    import AMDGPU
+    using AMDGPU
+    println("Using AMDGPU as back end")
+    
+    device = AMDGPU.device()
+    println("device: $device")
+
+  elseif endswith(BasicXSBenchPreferences.backend, "threads")
+    using Base.Threads
+    println("Using threads as back end")
+    # Threads.nthreads() = 192
+    # println("Number of threads: ", Threads.nthreads())
+end
 
 
 function test_simulation()
@@ -58,17 +100,23 @@ end
 
 function test_kernel(lookups, dist_d, a, num_nucs)
 
-    x1 = 7
-    a[1] = x1
+    # x1 = 7
+    # a[1] = x1
 
-    x1_ref = Ref(x1)
+    # x1_ref = Ref(x1)
 
-    x1_ref[] = 5
+    # x1_ref[] = 5
 
-    a[2] = x1
+    # a[2] = x1
 
+    num1 = 1
+    num2 = 2
+    num3 = 3
+    num4 = 4
+    num5 = 5
 
-    
+    a[1] = num1
+
 end
 
 function LCG_random_double_test(seed::UInt64)
@@ -109,24 +157,8 @@ end
 function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutableSimulationData)
 
     println("Running baseline event-based simulation...")
-    # mat_samples_d = JACC.Array(SD.mat_samples) # Not done yet
-    # p_energy_samples_d = JACC.Array(SD.p_energy_samples) # Not done yet
-
-    # length_num_nucs = length(SD.num_nucs)
-    # length_concs = length(SD.concs)
-    # length_unionized_energy_array = length(SD.unionized_energy_array)
-    # length_index_grid = length(SD.index_grid)
-    # length_nuclide_grid = length(SD.nuclide_grid)
-    # length_mats = length(SD.mats)
-    # length_mat_samples = length(SD.mat_samples)
-    # length_p_energy_samples = length(SD.p_energy_samples)
-    # max_num_nucs = SD.max_num_nucs
-
-    # println(length_nuclide_grid)
 
     println("Lookups: ", in.lookups)
-    # macro_xs_vector = CUDA.fill(Float64, 5)
-
 
     macro_xs_vector = JACC.Array(zeros(Float64, 5))
     grid_type = 0
@@ -180,6 +212,9 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
 
     
     verification_hash = 0
+    println("Number of threads before kernel: ", Threads.nthreads())
+
+    # JACC.experimental.shared(unionized_energy_array)
 
     # Warmup
     JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
@@ -189,7 +224,9 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
 
     start_time = time_ns()  # Start time in nanoseconds
 
-    
+
+    # println("Number of blocks: ", num_blocks)
+    # println("Number of threads: ", num_threads)
     for i in 1:10   
         # verification = JACC.Array(zeros(UInt64, in.lookups))
         JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
@@ -297,6 +334,7 @@ end
 function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
 
+    # unionized_energy_array = JACC.shared(unionized_energy_array)
     # Set the initial seed value
     seed = UInt64(STARTING_SEED)
     n = UInt64((lookups - 1) * 2)
@@ -313,12 +351,12 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
     macro_xs_1, macro_xs_2, macro_xs_3, macro_xs_4, macro_xs_5 = macro_xs(macro_xs_vector, a, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, lookups, b, test_macro_xs_vector, test_xs_vector)
 
-    # # For verification, and to prevent the compiler from optimizing
-	# # all work out, we interrogate the returned macro_xs_vector array
-	# # to find its maximum value index, then increment the verification
-	# # value by that index. In this implementation, we have each thread
-	# # write to its thread_id index in an array, which we will reduce
-	# # with a thrust reduction kernel after the main simulation kernel.
+    # For verification, and to prevent the compiler from optimizing
+	# all work out, we interrogate the returned macro_xs_vector array
+	# to find its maximum value index, then increment the verification
+	# value by that index. In this implementation, we have each thread
+	# write to its thread_id index in an array, which we will reduce
+	# with a thrust reduction kernel after the main simulation kernel.
 
 
     max = macro_xs_1
