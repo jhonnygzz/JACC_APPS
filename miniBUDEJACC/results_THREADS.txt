@@ -1,0 +1,10 @@
+Justify(AMD EPYC 7742 64-Core Processor):
+
+C miniBUDE:
+export OMP_NUM_THREADS=64
+sum_ms:              1204.144
+avg_ms:              120.414
+giga_interactions/s: 13.273 billion.
+gflop/s:             431.658
+gfinst/s:            331.832
+

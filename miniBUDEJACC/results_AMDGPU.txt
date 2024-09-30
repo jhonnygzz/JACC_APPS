@@ -1,0 +1,11 @@
+Cousteau (AMD Instinct MI100)
+Currently have very poor performance with Julia, it may be related to the AMDGPU version.
+
+C miniBUDE:
+Using parameters: <<<256,64>>>
+NON-SHARED MEMORY:
+sum_ms:              182.833
+avg_ms:              18.283
+giga_interactions/s: 87.418 billion
+gflop/s:             2842.918
+gfinst/s:            2185.456

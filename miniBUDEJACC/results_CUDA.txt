@@ -1,6 +1,9 @@
 HUDSON (H100, CUDA):
+FAST_MATH IS ENABLED FOR JULIA miniBUDE and C CUDA miniBUDE. But it does not play a big factor in performance.
+println("Using kernel parameters: <<<$(nblocks),$(nthreads)>>> 1:$nposes")
+Using kernel parameters: <<<256,64>>> 1:65536
 
-ORIGINAL MINIBUDE
+JULIA miniBUDE:
 NON-SHARED MEMORY:
 - Kernel time:    131.214 ms
 - Average time:   13.121 ms
@@ -16,7 +19,8 @@ SHARED MEMORY:
 - GFInst/s:       3156.723
 
 
-JACC MINIBUDE
+JACC miniBUDE
+Using parameters: <<<2,512>>>
 NON-SHARED MEMORY:
 - Kernel time:    6601.258 ms
 - Average time:   660.126 ms
@@ -30,6 +34,22 @@ SHARED MEMORY:
 - Interactions/s: 2.597 billion
 - GFLOP/s:        78.362
 - GFInst/s:       64.919
+
+
+C miniBUDE:
+Using parameters: <<<256,64>>>
+NON-SHARED MEMORY:
+sum_ms:              61.312 ms
+avg_ms:              6.131 ms
+giga_interactions/s: 260.683 billion
+gflop/s:             8477.649
+gfinst/s:            6517.083
+
+SHARED MEMORY:
+Implemented, but they are missing a variable "num_atom_types" which does not exist anywhere.
+
+
+
 
 
 ZENITH (AMDGPU, AMD Radeon RX 6900 XT)

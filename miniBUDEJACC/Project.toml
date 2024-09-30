@@ -1,7 +1,10 @@
+authors = ["Alexis Huante <alexis.huante@gmail.com>"]
 name = "miniBUDEJACC"
 uuid = "a49ee08d-2cae-4ecc-ace2-0baa55f7875c"
-authors = ["Alexis Huante <alexis.huante@gmail.com>"]
 version = "0.1.0"
+
+[compat]
+julia = "1.6"
 
 [deps]
 AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
@@ -15,5 +18,5 @@ Preferences = "21216c6a-2e73-6563-6e65-726566657250"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
-[compat]
-julia = "1.6"
+[extras]
+CUDA_Runtime_jll = "76a88914-d11a-5bdc-97e0-2f5a05c973a2"
