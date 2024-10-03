@@ -44,7 +44,9 @@ uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [[deps.JACC]]
 deps = ["Atomix", "Preferences"]
-git-tree-sha1 = "ca23631ebbb1eba211eda9fa1c9f542e3437db79"
+git-tree-sha1 = "0891b1206d413490388703127e3795a6ebbf47e6"
+repo-rev = "main"
+repo-url = "https://github.com/JValGLZ/JACC.jl.git"
 uuid = "0979c8fe-16a4-4796-9b82-89a9f10403ea"
 version = "0.0.5"
 

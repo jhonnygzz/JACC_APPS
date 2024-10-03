@@ -1,17 +1,8 @@
-# main.jl
-# include("XSBench.jl")
+
 include("Simulation.jl")
 
 using Base: write
 using .Simulation
-import JACC
-
-# using .JACC
-# using .XSBench
-# using Serialization
-# using Profile
-# using ProfileView
-# Function to check if SD is not null without printing
 
 
 function main()
@@ -29,10 +20,6 @@ function main()
 
 
 end
-
-
-
-# main()
 
 
 function compare_files(file1_path, file2_path)

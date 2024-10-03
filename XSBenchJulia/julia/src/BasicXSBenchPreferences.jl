@@ -18,7 +18,7 @@ end
 
 # Function to get the backend preference
 function get_backend()
-    Preferences.load_preference(PACKAGE_UUID, "backend", "amdgpu")
+    Preferences.load_preference(PACKAGE_UUID, "backend", "threads")
 end
 
 # Load the backend preference

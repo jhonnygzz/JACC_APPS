@@ -21,7 +21,6 @@ using Decimals
 using Dates
 
 
-
 # set backend
 include("BasicXSBenchPreferences.jl")
 @static if endswith(BasicXSBenchPreferences.backend, "cuda")
@@ -45,11 +44,12 @@ include("BasicXSBenchPreferences.jl")
     println("device: $(CUDA.name(device))")
 
 elseif endswith(BasicXSBenchPreferences.backend, "amdgpu")
-    # Pkg.add(; name = "AMDGPU", version = "v0.8.11")
-    Pkg.add("AMDGPU")
+    Pkg.add(; name = "AMDGPU", version = "v0.8.11")
+    # Pkg.add(; name = "AMDGPU", version = "v1.0.3") 
+    # Pkg.add("AMDGPU")
     Pkg.update("AMDGPU")
     import AMDGPU
-    using AMDGPU
+    # using AMDGPU
     println("Using AMDGPU as back end")
     
     device = AMDGPU.device()
@@ -197,7 +197,7 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     end
     nuclide_grid = JACC.Array(SD.nuclide_grid)
     verification = JACC.Array(zeros(UInt64, in.lookups))
-    sizeofa = 50
+    sizeofa = 17000000
     na = zeros(Float64, sizeofa)
     a = JACC.Array(na)
 
@@ -212,7 +212,7 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
 
     
     verification_hash = 0
-    println("Number of threads before kernel: ", Threads.nthreads())
+    # println("Number of threads before kernel: ", Threads.nthreads())
 
     # JACC.experimental.shared(unionized_energy_array)
 
@@ -220,7 +220,10 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
     # CUDA.synchronize()
+    # AMDGPU.synchronize()
     verification_hash_two = JACC.parallel_reduce(in.lookups, reduce, verification)
+    # AMDGPU.synchronize()
+
 
     start_time = time_ns()  # Start time in nanoseconds
 
@@ -231,12 +234,8 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
         # verification = JACC.Array(zeros(UInt64, in.lookups))
         JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
         mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
-        # CUDA.synchronize()
-        # verification_hash = sum(verification[1:in.lookups])
-        # verification_hash = JACC.parallel_reduce(in.lookups, reduce, verification)
+
         verification_hash_two = JACC.parallel_reduce(in.lookups, reduce, verification)
-        # println(verification_hash)
-        # CUDA.synchronize()
     end
     end_time = time_ns()    
 
@@ -253,11 +252,13 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
 
     two = Array(verification_hash_two)
 
-    println("two is: ", two)
+    # println("two is: ", two)
     # # Print data in na
-    # for i in 1:sizeofa
-    #     println("a[", i, "] is: ", na[i])
-    # end
+    for i in 1:sizeofa
+        if na[i] != 0
+            println("a[", i, "] is: ", na[i])
+        end
+    end
 
     
     verification_h = Array(verification)
@@ -268,7 +269,7 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
 
     # verificationF = verification_hash % 999983
     calc = two[1] % 999983
-    println("Two[1] % 999983: ", two[1] % 999983)
+    # println("Two[1] % 999983: ", two[1] % 999983)
     
     if calc == 952131
         # Print the following "Verification checksum: *insert verificationF here* (Valid)"
@@ -381,7 +382,15 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
         max = macro_xs_5
         max_idx = 5
     end
+
     #  Look for max function in Julia
+
+    # Use the following lines for AMD due to iteration out of bounds
+    # if lookups < 17000001
+    #     verification[lookups] = max_idx
+    # end
+
+    # Use the following for CUDA and Threads
     verification[lookups] = max_idx
 
 end
