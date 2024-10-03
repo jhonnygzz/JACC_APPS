@@ -38,10 +38,10 @@ include("BasicXSBenchPreferences.jl")
 
     # CUDA.set_runtime_version!(v"11.2")  # Replace with your installed CUDA version
     println("Using CUDA as back end")
-    println("CUDA version: ", CUDA.versioninfo())
+    # println("CUDA version: ", CUDA.versioninfo())
 
     device = CUDA.device()
-    println("device: $(CUDA.name(device))")
+    # println("device: $(CUDA.name(device))")
 
 elseif endswith(BasicXSBenchPreferences.backend, "amdgpu")
     Pkg.add(; name = "AMDGPU", version = "v0.8.11")
@@ -161,7 +161,7 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     println("Lookups: ", in.lookups)
 
     macro_xs_vector = JACC.Array(zeros(Float64, 5))
-    grid_type = 0
+    grid_type = 2
     n_isotopes = 355
     n_gridpoints = 11303
     p_energy = 0.626011

@@ -1,4 +1,4 @@
-module BasicXSBenchPreferences
+module BasicBabelPreferences
 
 using Preferences
 
@@ -27,4 +27,4 @@ const backend = get_backend()
 # Print the current backend preference
 println("backend: ", backend)
 
-end # module BasicXSBenchPreferences
+end # module BasicBabelPreferences
