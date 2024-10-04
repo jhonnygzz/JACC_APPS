@@ -67,6 +67,8 @@ function check_solutions(
   dot::Union{T,Nothing},
 ) where {T,C}
   (gold_a, gold_b, gold_c) = init
+  
+
   for _ = 1:times
     if benchmark == All
       gold_c = gold_a
@@ -84,14 +86,17 @@ function check_solutions(
 
   tolerance = eps(T) * 100
   function validate_xs(name::String, xs::AbstractArray{T}, from::T)
+    
     error = (map(x -> abs(x - from), xs) |> sum) / length(xs)
     failed = error > tolerance
     if failed
       println("Validation failed on $name. Average error $error")
     end
     !failed
-  end
 
+  end
+  println("size of a: ", length(data.a))
+  
   a_valid = validate_xs("a", data.a, gold_a)
   b_valid = validate_xs("b", data.b, gold_b)
   c_valid = validate_xs("c", data.c, gold_c)

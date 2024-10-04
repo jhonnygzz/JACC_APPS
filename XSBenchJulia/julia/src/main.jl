@@ -11,7 +11,7 @@ function main()
     println("Loading simulation data...")
     in = Simulation.LoadData.default_input()
     SD = Simulation.LoadData.load_sim_data()
-    println("Calculating macro cross section...")
+    # println("Calculating macro cross section...")
     Simulation.run_event_based_simulation(in, SD)
 
 

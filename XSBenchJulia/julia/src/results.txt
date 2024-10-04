@@ -6,20 +6,28 @@ JACC VS Baseline Formula ---> Baseline / JACC
 HUDSON - CUDA (NVIDIA H100 NVL) 
 To run: julia src/main.jl
 
-XSBench: (Blocks: 66407, Threads: 256)
+XSBench: (Unionized) (Blocks: 66407, Threads: 256)
 Runtime:     0.060 seconds
 Lookups:     17,000,000
 
+XSBench (Nuclide)
+Runtime:     0.229 seconds
+Lookups:     17,000,000
 
 XSBenchJulia JACC: (Blocks: 66407, Threads: 256)
 Runtime:     0.1078
 Lookups:     17,000,000
 JACC VS Baseline: 55%
 
-XSBenchJulia JACC: (Blocks: 33204, Threads: 512) DEFAULT
+XSBenchJulia JACC: (Unionized) (Blocks: 33204, Threads: 512) DEFAULT 
 Runtime:     0.1086 seconds
 Lookups:     17,000,000
 JACC VS Baseline:  55%
+
+XSBenchJulia JACC (Nuclide)
+Runtime:     0.454629
+Lookups:     17000000
+
 
 
 

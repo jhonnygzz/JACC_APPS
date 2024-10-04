@@ -121,9 +121,9 @@ function init_arrays!(data::JACCData{T}, _, init::Tuple{T,T,T}) where {T}
     JACC.fill!(data.b, init[2])
     JACC.fill!(data.c, init[3])
 
-    # println("First index of a: ", data.a[1])
-    # println("First index of b: ", data.b[1])
-    # println("First index of c: ", data.c[1])
+    println("First index of a: ", data.a[1])
+    println("First index of b: ", data.b[1])
+    println("First index of c: ", data.c[1])
 end
 
 function copy!(data::JACCData{T}, _) where {T}

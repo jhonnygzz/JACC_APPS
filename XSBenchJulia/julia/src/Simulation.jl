@@ -159,9 +159,10 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     println("Running baseline event-based simulation...")
 
     println("Lookups: ", in.lookups)
+    
 
     macro_xs_vector = JACC.Array(zeros(Float64, 5))
-    grid_type = 2
+    grid_type = 1
     n_isotopes = 355
     n_gridpoints = 11303
     p_energy = 0.626011
@@ -209,7 +210,14 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
 
 
 
-
+    if grid_type == UNIONIZED
+        println("Unionized Energy Grid")
+    elseif grid_type == NUCLIDE
+        println("Nuclide Grid")
+    elseif grid_type == HASH
+        println("Hash Grid")
+    end
+    
     
     verification_hash = 0
     # println("Number of threads before kernel: ", Threads.nthreads())
@@ -360,6 +368,9 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
 	# with a thrust reduction kernel after the main simulation kernel.
 
 
+
+
+
     max = macro_xs_1
     max_idx = 1
 
@@ -463,10 +474,8 @@ end
 
         # Perform binary search on the Nuclide Grid
         idx = grid_search_nuclide(n_gridpoints, p_energy,
-                                  nuclide_grids,
-                                  1, n_gridpoints - 1, nuc*n_gridpoints)
-
-
+                                    nuclide_grids,
+                                    0, n_gridpoints - 1, nuc*n_gridpoints)
         # Ensure we're not reading off the end
         if idx == n_gridpoints - 1
             low = nuclide_grids[nuc*n_gridpoints + idx] 
@@ -568,4 +577,3 @@ end
 
 
 end # module
-
