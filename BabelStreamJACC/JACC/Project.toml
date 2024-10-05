@@ -1,0 +1,11 @@
+[compat]
+julia = "1.9"
+
+[deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+JACC = "0979c8fe-16a4-4796-9b82-89a9f10403ea"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+
+[extras]
+CUDA_Runtime_jll = "76a88914-d11a-5bdc-97e0-2f5a05c973a2"

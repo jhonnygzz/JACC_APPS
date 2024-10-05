@@ -1,17 +1,8 @@
-# main.jl
-# include("XSBench.jl")
+
 include("Simulation.jl")
 
 using Base: write
 using .Simulation
-import JACC
-
-# using .JACC
-# using .XSBench
-# using Serialization
-# using Profile
-# using ProfileView
-# Function to check if SD is not null without printing
 
 
 function main()
@@ -20,26 +11,15 @@ function main()
     println("Loading simulation data...")
     in = Simulation.LoadData.default_input()
     SD = Simulation.LoadData.load_sim_data()
-    println("Calculating macro cross section...")
+    # println("Calculating macro cross section...")
     Simulation.run_event_based_simulation(in, SD)
 
-    # Print all data inside SD
-
-    # print
-
-    
-    
-    # Simulation.simulation_ex()
 
     # Simulation.test_simulation()
 
 
 
 end
-
-
-
-# main()
 
 
 function compare_files(file1_path, file2_path)
