@@ -258,7 +258,7 @@ version = "1.0.0"
 
 [[deps.JACC]]
 deps = ["Atomix", "Preferences"]
-git-tree-sha1 = "d7b502316cc9a23c23bf3db1dbe26b18352c9144"
+git-tree-sha1 = "cc6b0d39a5cd57b89101ed23cb08bcf9950c94de"
 repo-rev = "main"
 repo-url = "https://github.com/alexishuante/JACC.jl.git"
 uuid = "0979c8fe-16a4-4796-9b82-89a9f10403ea"
