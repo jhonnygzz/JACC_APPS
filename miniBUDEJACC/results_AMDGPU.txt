@@ -2,14 +2,14 @@ Cousteau (AMD Instinct MI100)
 Used kernel parameters for all of them: <<<256,64>>> (nblocks, nthreads)
 Used FAST_MATH and NON-SHARED MEMORY.
 
-C
+C (HIP)
 - Kernel time:    182.833 ms
 - Average time:   18.283 ms
 - Interactions/s: 87.418 billion
 - GFLOP/s:        2842.918
 - GFInst/s:       2185.456
 
-JULIA
+JULIA (AMDGPU)
 - Kernel time:    136.781 ms
 - Average time:   13.678 ms
 - Interactions/s: 116.851 billion

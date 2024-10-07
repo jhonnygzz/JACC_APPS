@@ -4,21 +4,21 @@ println("Using kernel parameters: <<<$(nblocks),$(nthreads)>>> 1:$nposes")
 Used kernel parameters for all of them: <<<256,64>>>
 Used FAST_MATH and NON-SHARED MEMORY.
 
-C miniBUDE:
+C (CUDA):
 - Kernel time:    61.312 ms
 - Average time:   6.131 ms
 - Interactions/s: 260.683 billion
 - GFLOP/s:        8477.649
 - GFInst/s:       6517.083
 
-JULIA miniBUDE:
+JULIA(CUDA):
 - Kernel time:    131.214 ms
 - Average time:   13.121 ms
 - Interactions/s: 121.808 billion
 - GFLOP/s:        3961.305
 - GFInst/s:       3045.202
 
-JACC miniBUDE
+JACC:
 - Kernel time:    210.176 ms
 - Average time:   21.018 ms
 - Interactions/s: 76.045 billion

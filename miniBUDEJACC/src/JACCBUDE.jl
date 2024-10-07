@@ -57,6 +57,14 @@ elseif endswith(BasicBUDEPreferences.backend, "amdgpu")
     
     device = AMDGPU.device()
     println("device: $device")
+  elseif endswith(BasicBUDEPreferences.backend, "oneapi")
+    Pkg.add("oneAPI")
+    import oneAPI
+    #using oneAPI
+    println("Using oneAPI as back end")
+    
+    device = oneAPI.device()
+    println("device: $device")
 
   elseif endswith(BasicBUDEPreferences.backend, "threads")
     println("Using threads as back end")
@@ -93,7 +101,7 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
 
   #CUDA.@profile sin.(etotals)
 
-  #println("Type of protein: ", typeof(protein))
+  println("Type of protein: ", typeof(protein))
 
 
 

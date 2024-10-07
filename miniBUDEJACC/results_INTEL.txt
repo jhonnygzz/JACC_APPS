@@ -1,0 +1,22 @@
+Clark (Intel(R) Arc(TM) A770 Graphics)
+
+C (SYCL):
+- Kernel time:    161.150 ms
+- Average time:   16.115 ms
+- Interactions/s: 99.180 billion
+- GFLOP/s:        3225.431 
+- GFInst/s:       2479.509
+
+JACC:
+- Kernel time:    159.866 ms
+- Average time:   15.987 ms
+- Interactions/s: 99.977 billion
+- GFLOP/s:        3016.961
+- GFInst/s:       2499.419
+
+JULIA (oneAPI):
+- Kernel time:    161.180 ms
+- Average time:   16.118 ms
+- Interactions/s: 99.162 billion
+- GFLOP/s:        3224.840
+- GFInst/s:       2479.055

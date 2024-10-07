@@ -2,18 +2,24 @@ Justify(AMD EPYC 7742 64-Core Processor):
 JULIA: export JULIA_NUM_THREADS=
 C: export OMP_NUM_THREADS=
 
-
+C CODE COMPILATION:
+Currently Loaded Modules:
+  1) llvm/17.0.6
+clang version 17.0.6
+Target: x86_64-unknown-linux-gnu
+Thread model: posix
+InstalledDir: /auto/software/swtree/ubuntu22.04/x86_64/llvm/17.0.6/bin
 
 
 
 
 32 THREADS:
 C
-- Kernel time:    2423.969 ms
-- Average time:   242.397 ms
-- Interactions/s: 6.594 billion
-- GFLOP/s:        214.433
-- GFInst/s:       164.842
+- Kernel time:    1430.176 ms
+- Average time:   143.018 ms
+- Interactions/s: 11.175 billion
+- GFLOP/s:        363.437
+- GFInst/s:       279.387
 
 JACC
 - Kernel time:    2136.905 ms
@@ -40,11 +46,11 @@ KERNELABSTRACTIONS
 
 64 THREADS:
 C
-- Kernel time:    1223.964 ms
-- Average time:   122.396 ms 
-- Interactions/s: 13.058 billion
-- GFLOP/s:        424.668
-- GFInst/s:       326.458
+- Kernel time:    742.244 ms
+- Average time:   74.224 ms 
+- Interactions/s: 21.533 billion
+- GFLOP/s:        700.280
+- GFInst/s:       538.331
 
 JACC
 - Kernel time:    1486.912 ms
@@ -73,11 +79,11 @@ KERNELABSTRACTIONS
 
 128 THREADS:
 C
-- Kernel time:    1057.711 ms 
-- Average time:   105.771 ms
-- Interactions/s: 15.111 billion
-- GFLOP/s:        491.418
-- GFInst/s:       377.772
+- Kernel time:    832.881 ms
+- Average time:   83.288 ms
+- Interactions/s: 19.190 billion
+- GFLOP/s:        624.073
+- GFInst/s:       479.748
 
 JACC
 - Kernel time:    940.130 ms
