@@ -1,10 +1,107 @@
 Justify(AMD EPYC 7742 64-Core Processor):
+JULIA: export JULIA_NUM_THREADS=
+C: export OMP_NUM_THREADS=
 
-C miniBUDE:
-export OMP_NUM_THREADS=64
-sum_ms:              1204.144
-avg_ms:              120.414
-giga_interactions/s: 13.273 billion.
-gflop/s:             431.658
-gfinst/s:            331.832
+C CODE COMPILATION:
+Currently Loaded Modules:
+  1) llvm/17.0.6
+clang version 17.0.6
+Target: x86_64-unknown-linux-gnu
+Thread model: posix
+InstalledDir: /auto/software/swtree/ubuntu22.04/x86_64/llvm/17.0.6/bin
 
+
+
+
+32 THREADS:
+C
+- Kernel time:    1430.176 ms
+- Average time:   143.018 ms
+- Interactions/s: 11.175 billion
+- GFLOP/s:        363.437
+- GFInst/s:       279.387
+
+JACC
+- Kernel time:    2136.905 ms
+- Average time:   213.690 ms
+- Interactions/s: 7.479 billion
+- GFLOP/s:        225.705
+- GFInst/s:       186.987
+
+JULIA
+- Kernel time:    1062.127 ms
+- Average time:   106.213 ms
+- Interactions/s: 15.048 billion
+- GFLOP/s:        454.099
+- GFInst/s:       376.201
+
+KERNELABSTRACTIONS
+- Kernel time:    2170.281 ms
+- Average time:   217.028 ms
+- Interactions/s: 7.364 billion
+- GFLOP/s:        239.498
+- GFInst/s:       184.111
+
+
+
+64 THREADS:
+C
+- Kernel time:    742.244 ms
+- Average time:   74.224 ms 
+- Interactions/s: 21.533 billion
+- GFLOP/s:        700.280
+- GFInst/s:       538.331
+
+JACC
+- Kernel time:    1486.912 ms
+- Average time:   148.691 ms
+- Interactions/s: 10.749 billion
+- GFLOP/s:        324.370
+- GFInst/s:       268.727
+
+JULIA
+- Kernel time:    782.497 ms
+- Average time:   78.250 ms
+- Interactions/s: 20.426 billion
+- GFLOP/s:        616.373
+- GFInst/s:       510.638
+
+KERNELABSTRACTIONS
+- Kernel time:    1092.093 ms
+- Average time:   109.209 ms
+- Interactions/s: 14.635 billion
+- GFLOP/s:        475.947
+- GFInst/s:       365.878
+
+
+
+
+
+128 THREADS:
+C
+- Kernel time:    832.881 ms
+- Average time:   83.288 ms
+- Interactions/s: 19.190 billion
+- GFLOP/s:        624.073
+- GFInst/s:       479.748
+
+JACC
+- Kernel time:    940.130 ms
+- Average time:   94.013 ms
+- Interactions/s: 17.001 billion
+- GFLOP/s:        513.025
+- GFInst/s:       425.019
+
+JULIA
+- Kernel time:    696.447 ms
+- Average time:   69.645 ms
+- Interactions/s: 22.949 billion
+- GFLOP/s:        692.530
+- GFInst/s:       573.731
+
+KERNELABSTRACTIONS
+- Kernel time:    1383.053 ms
+- Average time:   138.305 ms
+- Interactions/s: 11.556 billion
+- GFLOP/s:        375.820
+- GFInst/s:       288.907

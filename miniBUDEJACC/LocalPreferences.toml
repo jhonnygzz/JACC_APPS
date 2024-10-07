@@ -3,4 +3,4 @@ __clear__ = ["local"]
 version = "12.5"
 
 [miniBUDEJACC]
-backend = "cuda"
+backend = "oneapi"

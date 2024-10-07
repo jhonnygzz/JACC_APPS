@@ -1,11 +1,32 @@
 Cousteau (AMD Instinct MI100)
-Currently have very poor performance with Julia, it may be related to the AMDGPU version.
+Used kernel parameters for all of them: <<<256,64>>> (nblocks, nthreads)
+Used FAST_MATH and NON-SHARED MEMORY.
 
-C miniBUDE:
-Using parameters: <<<256,64>>>
-NON-SHARED MEMORY:
-sum_ms:              182.833
-avg_ms:              18.283
-giga_interactions/s: 87.418 billion
-gflop/s:             2842.918
-gfinst/s:            2185.456
+C (HIP)
+- Kernel time:    182.833 ms
+- Average time:   18.283 ms
+- Interactions/s: 87.418 billion
+- GFLOP/s:        2842.918
+- GFInst/s:       2185.456
+
+JULIA (AMDGPU)
+- Kernel time:    136.781 ms
+- Average time:   13.678 ms
+- Interactions/s: 116.851 billion
+- GFLOP/s:        3800.083
+- GFInst/s:       2921.264
+
+JACC
+- Kernel time:    140.222 ms
+- Average time:   14.022 ms
+- Interactions/s: 113.983 billion
+- GFLOP/s:        3439.631
+- GFInst/s:       2849.582
+
+KERNELABSTRACTIONS
+- Kernel time:    735.427 ms
+- Average time:   73.543 ms
+- Interactions/s: 21.733 billion
+- GFLOP/s:        706.771
+- GFInst/s:       543.321
+
