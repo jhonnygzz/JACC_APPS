@@ -8,6 +8,13 @@ include("StreamData.jl")
 const VectorData = StreamData{T,Vector{T}} where {T}
 
 const DeviceWithRepr = Tuple{Any,String,Any}
+struct StreamData{T,C<:AbstractArray{T}}
+  a::C
+  b::C
+  c::C
+  scalar::T
+  size::Int
+end
 
 struct Timings
   copy::Vector{Float64}
@@ -297,8 +304,10 @@ function main()
   GC.enable(false)
 
   (data, context) = make_stream(config.arraysize, scalar, device, config.csv)
+  println("Type of data.a in main (after make_stream): ", typeof(data.a))
   tInit = run_init_arrays!(data, context, init)
   if benchmark == All
+    println("Type of data.a before benchmark: ", typeof(data.a))
     (timings, sum) = run_all!(data, context, config.numtimes)
     (tRead, result) = run_read_data(data, context)
     show_init(tInit, tRead)
@@ -310,6 +319,7 @@ function main()
       mk_row(timings.triad, "Triad", 3 * array_bytes),
       mk_row(timings.dot, "Dot", 2 * array_bytes),
     )
+    println("Type of data.a after benchmark: ", typeof(data.a))
   elseif benchmark == Nstream
     # println("Running Nstream %d times\n", config.numtimes)
     timings = run_nstream!(data, context, config.numtimes)
