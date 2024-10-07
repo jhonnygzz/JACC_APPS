@@ -10,8 +10,8 @@ function main()
 
     println("Loading simulation data...")
     in = Simulation.LoadData.default_input()
-    SD = Simulation.LoadData.load_sim_data()
-    # println("Calculating macro cross section...")
+    # SD = Simulation.LoadData.load_sim_data()
+    SD = Simulation.LoadData.load_sim_data_hash()
     Simulation.run_event_based_simulation(in, SD)
 
 
