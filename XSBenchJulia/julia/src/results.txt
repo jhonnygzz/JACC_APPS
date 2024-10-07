@@ -8,7 +8,7 @@ To run: julia src/main.jl
 
 Configuration	Baseline_Runtime	JACC_Runtime	Speedup(Baseline / JACC)
 Unionized	    0.060	            0.1078	        0.556
-Nuclide	        0.229	            0.454629	    0.504
+Nuclide	      0.229	            0.454629	      0.504
 Hash	        0.095	            0.2711	        0.350
 
 =============================================================================================================
@@ -18,8 +18,8 @@ To run: julia src/main.jl
 
 Configuration	Baseline_Runtime	JACC_Runtime	Speedup(Baseline / JACC)
 Unionized	    0.409	            0.769	        0.52
-Nuclide	        0.651	            0.5959	        1.09
-Hash	        0.372	            0.3634          1.02
+Nuclide	      0.651	            0.5959	      1.09
+Hash	        0.372	            0.3634        1.02
 
 ==============================================================================================================
                             HUDSON - Threading 
@@ -28,7 +28,7 @@ To run: julia -t 192 src/main.jl
 
 Configuration	Baseline_Runtime	JACC_Runtime	Speedup(Baseline / JACC)
 Unionized	    0.547	            0.6960          0.786
-Nuclide	        2.615	            2.9633          0.882
+Nuclide	      2.615	            2.9633          0.882
 Hash	        0.651	            0.7640          0.852
 
 
