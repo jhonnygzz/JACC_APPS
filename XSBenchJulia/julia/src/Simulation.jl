@@ -84,7 +84,7 @@ function test_simulation()
 
     sizeofa = 10
     a = zeros(Float64, sizeofa)
-    lookups = 17000000
+    lookups = 1
 
     dist_d = JACC.Array(dist)
     a = JACC.Array(a)
@@ -100,22 +100,24 @@ end
 
 function test_kernel(lookups, dist_d, a, num_nucs)
 
-    # x1 = 7
-    # a[1] = x1
+    seed = UInt64(STARTING_SEED)
+    n = UInt64((lookups - 1) * 2)
 
-    # x1_ref = Ref(x1)
+    # Forward seed to lookup index (we need 2 samples per lookup)
+    seed = fast_forward_LCG(seed, n, a)  # Functional !!
 
-    # x1_ref[] = 5
+    # Randomly pick an energy and material for the particle
+    p_energy, seed = LCG_random_double_test(seed) # Functional !!
+    mat, seed = pick_mat_test(seed, a, lookups, dist_d) # Functional !!!
 
-    # a[2] = x1
+    hash_bins = 10000
+    du = 1.0 / hash_bins
+    idx = floor(Int, p_energy / du)
+    a[1] = idx
 
-    num1 = 1
-    num2 = 2
-    num3 = 3
-    num4 = 4
-    num5 = 5
 
-    a[1] = num1
+
+
 
 end
 
@@ -162,7 +164,7 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     
 
     macro_xs_vector = JACC.Array(zeros(Float64, 5))
-    grid_type = 1
+    grid_type = 2
     n_isotopes = 355
     n_gridpoints = 11303
     p_energy = 0.626011
@@ -227,11 +229,8 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     # Warmup
     JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
-    # CUDA.synchronize()
-    # AMDGPU.synchronize()
-    verification_hash_two = JACC.parallel_reduce(in.lookups, reduce, verification)
-    # AMDGPU.synchronize()
 
+    verification_hash_two = JACC.parallel_reduce(in.lookups, reduce, verification)
 
     start_time = time_ns()  # Start time in nanoseconds
 
@@ -239,7 +238,7 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     # println("Number of blocks: ", num_blocks)
     # println("Number of threads: ", num_threads)
     for i in 1:10   
-        # verification = JACC.Array(zeros(UInt64, in.lookups))
+
         JACC.parallel_for(in.lookups, kernel, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
         mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, dist_d, verification, b, test_macro_xs_vector, test_xs_vector)
 
@@ -272,12 +271,10 @@ function run_event_based_simulation(in:: LoadData.Input, SD:: LoadData.immutable
     verification_h = Array(verification)
 
     # Save verification_h array to a file
-    verification_h_array = Array(verification_h)
-    writedlm("verification_h_data_tests.txt", verification_h_array)
+    # verification_h_array = Array(verification_h)
+    writedlm("verification_h_data_tests.txt", verification_h)
 
-    # verificationF = verification_hash % 999983
     calc = two[1] % 999983
-    # println("Two[1] % 999983: ", two[1] % 999983)
     
     if calc == 952131
         # Print the following "Verification checksum: *insert verificationF here* (Valid)"
@@ -321,7 +318,6 @@ function fast_forward_LCG(seed::UInt64, n::UInt64, b):: UInt64 # Appears to be c
     c = UInt64(1)
 
     n = n % m
-    # b[11] = n
     a_new = UInt64(1)
     c_new = UInt64(0)
 
@@ -356,20 +352,15 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
     mat, seed = pick_mat_test(seed, a, lookups, dist_d) # Functional !!!
 
 	# Perform macroscopic Cross Section Lookup
-
     macro_xs_1, macro_xs_2, macro_xs_3, macro_xs_4, macro_xs_5 = macro_xs(macro_xs_vector, a, grid_type, n_isotopes, n_gridpoints, p_energy, unionized_energy_array, hash_bins,
     mat, num_nucs, xs_vector, mats, max_num_nucs, concs, index_grid, nuclide_grid, lookups, b, test_macro_xs_vector, test_xs_vector)
 
-    # For verification, and to prevent the compiler from optimizing
-	# all work out, we interrogate the returned macro_xs_vector array
-	# to find its maximum value index, then increment the verification
-	# value by that index. In this implementation, we have each thread
-	# write to its thread_id index in an array, which we will reduce
-	# with a thrust reduction kernel after the main simulation kernel.
-
-
-
-
+    # # For verification, and to prevent the compiler from optimizing
+	# # all work out, we interrogate the returned macro_xs_vector array
+	# # to find its maximum value index, then increment the verification
+	# # value by that index. In this implementation, we have each thread
+	# # write to its thread_id index in an array, which we will reduce
+	# # with a thrust reduction kernel after the main simulation kernel.
 
     max = macro_xs_1
     max_idx = 1
@@ -394,15 +385,15 @@ function kernel(lookups, a, macro_xs_vector, grid_type, n_isotopes, n_gridpoints
         max_idx = 5
     end
 
-    #  Look for max function in Julia
+    # #  Look for max function in Julia
 
     # Use the following lines for AMD due to iteration out of bounds
-    # if lookups < 17000001
-    #     verification[lookups] = max_idx
-    # end
+    if lookups < 17000001
+        verification[lookups] = max_idx
+    end
 
-    # Use the following for CUDA and Threads
-    verification[lookups] = max_idx
+    # # Use the following for CUDA and Threads
+    # verification[lookups] = max_idx
 
 end
 
@@ -424,7 +415,7 @@ end
 
     elseif grid_type == HASH
         du = 1.0 / hash_bins
-        idx = Int(p_energy / du)
+        idx = floor(Int, p_energy / du)
     end
 
     # Once we find the pointer array on the UEG, we can pull the data
@@ -464,7 +455,6 @@ end
     idx::Int64, xs_vector, grid_type::Int, hash_bins::Int, lookups, j, conc, test_xs_vector)
 
     # Variables
-    # f = 0.0
     low = immutableNuclideGridPoint(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     high = immutableNuclideGridPoint(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     low_idx = 1
@@ -506,20 +496,20 @@ end
         u_high = if idx == hash_bins - 1
             n_gridpoints - 1
         else
-            index_data[(idx+1)*n_isotopes + nuc + 1] - 1 
+            index_data[(idx+1)*n_isotopes + nuc + 1] + 1 
         end
 
         # Check edge cases and search for gridpoint
         e_low  = nuclide_grids[nuc*n_gridpoints + u_low + 1].energy
         e_high = nuclide_grids[nuc*n_gridpoints + u_high + 1].energy
+
         lower = if p_energy <= e_low
             0
         elseif p_energy >= e_high
             n_gridpoints - 1
         else
-            grid_search_nuclide(n_gridpoints, p_energy, nuclide_grids, u_low, u_high, nuc*n_gridpoints+1)
+            grid_search_nuclide(n_gridpoints, p_energy, nuclide_grids, u_low, u_high, nuc*n_gridpoints)
         end
-
 
         if lower == n_gridpoints - 1
             low = nuclide_grids[nuc*n_gridpoints + lower]
@@ -532,7 +522,7 @@ end
 
     # Get the higher energy grid point
     high = nuclide_grids[low_idx + 1]
-
+    
     # Interpolation factor
     f = Float64(Float64((high.energy - p_energy)) / Float64((high.energy - low.energy)))
 

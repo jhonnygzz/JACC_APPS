@@ -1,78 +1,40 @@
 
-JACC VS Baseline Formula ---> Baseline / JACC
- 
+
+                    HUDSON - CUDA (NVIDIA H100 NVL) 
+                    (Blocks: 66407, Threads: 256)
 
 
-HUDSON - CUDA (NVIDIA H100 NVL) 
 To run: julia src/main.jl
 
-XSBench: (Unionized) (Blocks: 66407, Threads: 256)
-Runtime:     0.060 seconds
-Lookups:     17,000,000
+Configuration	Baseline_Runtime	JACC_Runtime	Speedup(Baseline / JACC)
+Unionized	    0.060	            0.1078	        0.556
+Nuclide	      0.229	            0.454629	      0.504
+Hash	        0.095	            0.2711	        0.350
 
-XSBench (Nuclide)
-Runtime:     0.229 seconds
-Lookups:     17,000,000
+=============================================================================================================
+                    Cousteau - AMDGPU (AMD MI100 32 GB GPUs)
 
-XSBenchJulia JACC: (Blocks: 66407, Threads: 256)
-Runtime:     0.1078
-Lookups:     17,000,000
-JACC VS Baseline: 55%
-
-XSBenchJulia JACC: (Unionized) (Blocks: 33204, Threads: 512) DEFAULT 
-Runtime:     0.1086 seconds
-Lookups:     17,000,000
-JACC VS Baseline:  55%
-
-XSBenchJulia JACC (Nuclide)
-Runtime:     0.454629
-Lookups:     17000000
-
-
-
-
-======================================================
-
-Cousteau - AMDGPU (AMD MI100 32 GB GPUs)
 To run: julia src/main.jl
 
-XSBench
-Runtime:     0.409 seconds
-Lookups:     17,000,000
+Configuration	Baseline_Runtime	JACC_Runtime	Speedup(Baseline / JACC)
+Unionized	    0.409	            0.769	        0.52
+Nuclide	      0.651	            0.5959	      1.09
+Hash	        0.372	            0.3634        1.02
 
-XSBenchJulia JACC: (Blocks: 66407, Threads: 256)
-Runtime:     0.769 seconds 
-Lookups:     17,000,000
-JACC VS Baseline: 53%
-
-XSBenchJulia JACC: (Blocks: 33204, Threads: 512) DEFAULT
-Runtime:     0.852 seconds 
-Lookups:     17,000,000
-JACC VS Baseline:  48%
-
-
-
-
-======================================================
-
-Hudson - Threads:
+==============================================================================================================
+                            HUDSON - Threading 
+                            
 To run: julia -t 192 src/main.jl
 
-XSBench (OpenMP-Threading)
-Threads:     192
-Runtime:     0.547 seconds
-Lookups:     17,000,000
+Configuration	Baseline_Runtime	JACC_Runtime	Speedup(Baseline / JACC)
+Unionized	    0.547	            0.6960          0.786
+Nuclide	      2.615	            2.9633          0.882
+Hash	        0.651	            0.7640          0.852
+
+
 
 XSBench (OpenMP-offload)
 Runtime:     0.916 seconds
 Lookups:     17,000,000
-
-
-XSBenchJulia JACC
-Threads:     192
-Runtime:     0.707 seconds
-Lookups:     17,000,000
-JACC VS Baseline(OpenMP-Threading):  77%
-
 
  

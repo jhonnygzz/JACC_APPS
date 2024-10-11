@@ -1,9 +1,9 @@
 include("Stream.jl")
-
 import JACC
 import Pkg
 using JACC
-const JACCData = StreamData{T,JACC.Array{T}} where {T}
+# const JACCData = StreamData{T,JACC.Array{T}} where {T}
+
 const TBSize = 1024::Int
 const DotBlocks = 256::Int
 
@@ -49,6 +49,8 @@ elseif endswith(BasicBabelPreferences.backend, "amdgpu")
     println("Using threads as back end")
 end
 
+const JACCData = StreamData{T,JACC.Array{T}} where {T}
+
 function devices()::Vector{DeviceWithRepr}
     if backend == "cuda"
         return !CUDA.functional(false) ? String[] :
@@ -56,10 +58,12 @@ function devices()::Vector{DeviceWithRepr}
     elseif backend == "amdgpu"
         return AMDGPU.devices()
     else
-        return [DeviceWithRepr(1, "CPU")]
+        return [(undef, "$(Sys.cpu_info()[1].model) ($(Threads.nthreads())T)", "Threaded")]
     end
 end
   
+
+
 
 function make_stream(
     arraysize::Int,
@@ -83,7 +87,8 @@ function make_stream(
         if !silent
             println("Using CUDA device: $(CUDA.name(selected)) ($(repr(selected)))")
             println("Kernel parameters: <<<$(arraysize ÷ TBSize),$(TBSize)>>>")
-    end
+        end
+        
     elseif backend == "amdgpu"
         # XXX AMDGPU doesn't expose an API for setting the default like CUDA.device!()
         # but AMDGPU.get_default_agent returns DEFAULT_AGENT so we can do it by hand
@@ -92,19 +97,22 @@ function make_stream(
         if !silent
             println("Using GPU HSA device: $(AMDGPU.get_name(selected)) ($(repr(selected)))")
             println("Kernel parameters   : <<<$(arraysize),$(TBSize)>>>")
-    end
+        end
     else
         if !silent
             println("Using CPU device")
             println("Kernel parameters: <<<$(arraysize ÷ TBSize),$(TBSize)>>>")
         end
     end
-    a = JACC.Array(JACC.Array{T}(undef, arraysize))
-    b = JACC.Array(JACC.Array{T}(undef, arraysize))
-    c = JACC.Array(JACC.Array{T}(undef, arraysize))
 
-    # println("Type of a: ", typeof(a))
-    return (
+    a = JACC.Array{T}(undef, arraysize)
+    b = JACC.Array{T}(undef, arraysize)
+    c = JACC.Array{T}(undef, arraysize)
+    # println("Type of a in make_stream: ", typeof(a))
+
+    # data = JACCData{T}(a, b, c, scalar, arraysize)
+    # println("Type of data.a in make_stream inside data: ", typeof(data.a))
+        return (
         JACCData{T}(
             a,
             b,
@@ -114,27 +122,32 @@ function make_stream(
         ),
         nothing,
     )
+    return data, nothing
+
 end
 
 function init_arrays!(data::JACCData{T}, _, init::Tuple{T,T,T}) where {T}
-    JACC.fill!(data.a, init[1])
-    JACC.fill!(data.b, init[2])
-    JACC.fill!(data.c, init[3])
-
-    println("First index of a: ", data.a[1])
-    println("First index of b: ", data.b[1])
-    println("First index of c: ", data.c[1])
+    # println("type of a before fill: ", typeof(data.a))
+    fill!(data.a, init[1])
+    fill!(data.b, init[2])
+    fill!(data.c, init[3])
+    # println("type of a after fill: ", typeof(data.a))
 end
 
 function copy!(data::JACCData{T}, _) where {T}
+    # println("Type of data.a in copy! (start): ", typeof(data.a))
     function kernel(i, a::AbstractArray{T}, c::AbstractArray{T})
         @inbounds c[i] = a[i]
         return
     end
     # println("Type of data.a: ", typeof(data.a))
+    # println("a[1]: ", data.a[1])
 
+    # println("Type of data.a with JACC.array wrapping: ", typeof(JACC.Array(data.a)))
     JACC.parallel_for(data.size, kernel, JACC.Array(data.a), JACC.Array(data.c))
     # JACC.parallel_for(data.size, kernel, data.a, data.c)
+    # JACC.parallel_for(data.size, kernel, data.a, data.c)
+    # println("Type of data.a in copy! (end): ", typeof(data.a))
 end
 
 function mul!(data::JACCData{T}, _) where {T}
@@ -176,11 +189,11 @@ end
 
 
 
-function free!(data::JACCData{T}) where {T}
-    JACC.free!(data.a)
-    JACC.free!(data.b)
-    JACC.free!(data.c)
-end
+# function free!(data::JACCData{T}) where {T}
+#     JACC.free!(data.a)
+#     JACC.free!(data.b)
+#     JACC.free!(data.c)
+# end
 
 
 

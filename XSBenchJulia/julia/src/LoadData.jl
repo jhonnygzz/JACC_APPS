@@ -66,9 +66,10 @@ function default_input()
     )
 end
 
-function load_sim_data()
-    fname = "../../../OLD/XSBench/cuda/SimulationDataThree.txt"
-    println("Attempting to open file $fname...")
+function load_sim_data_hash()
+    # fname = "../../../OLD/XSBench/cuda/SimulationDataThree.txt"
+    fname = "../../../OLD/XSBench/cuda/SimulationDataHash.txt"
+    # println("Attempting to open file $fname...")
 
 
     # Attempt to open the file in read mode
@@ -83,30 +84,21 @@ function load_sim_data()
     num_nucs = Vector{Int32}(undef, 12)
     concs = Vector{Float64}(undef, 3852)
     mats = Vector{Int32}(undef, 3852)
-    unionized_energy_array = Vector{Float64}(undef, 4012565)
-    index_grid = Vector{Int32}(undef, 1424460575)
+    unionized_energy_array = Vector{Float64}(undef, 0)
+    index_grid = Vector{Int32}(undef, 3550000)
     nuclide_grid = Vector{immutableNuclideGridPoint}(undef, 4012565)
     p_energy_samples = Vector{Float64}(undef, 0)
     mat_samples = Vector{Int32}(undef, 0)
+
     length_num_nucs = 12
     length_concs = 3852
     length_mats = 3852
-    length_unionized_energy_array = 4012565
-    length_index_grid = 1424460575
+    length_unionized_energy_array = 0
+    length_index_grid = 3550000
     length_nuclide_grid = 4012565
     length_p_energy_samples = 0
     length_mat_samples = 0
     max_num_nucs = 321
-
-    length_num_nucs: 12
-    length_concs: 3852
-    length_mats: 3852
-    length_unionized_energy_array: 4012565
-    length_index_grid: 1424460575
-    length_nuclide_grid: 4012565
-    length_p_energy_samples: 0
-    length_mat_samples: 0
-    max_num_nucs: 321
 
     # Read the num_nucs value amount of integers from the file
     for i in 1:length_num_nucs
@@ -156,7 +148,95 @@ function load_sim_data()
 
     # Close the file
     close(file)
-    println("File closed successfully.")
+    # println("File closed successfully.")
+
+    return immutableSimulationData(num_nucs, concs, mats, unionized_energy_array, index_grid, nuclide_grid, length_num_nucs, length_concs, length_mats, length_unionized_energy_array, length_index_grid, length_nuclide_grid, max_num_nucs, p_energy_samples, length_p_energy_samples, mat_samples, length_mat_samples)
+
+end
+
+
+function load_sim_data()
+    # fname = "../../../OLD/XSBench/cuda/SimulationDataThree.txt"
+    fname = "../../../OLD/XSBench/cuda/SimulationDataThree.txt"
+    # println("Attempting to open file $fname...")
+
+
+    # Attempt to open the file in read mode
+    file = open(fname, "r")
+
+    # Check if the file was successfully opened
+    if file === nothing
+        error("Failed to open file: $fname")
+    end
+
+    println("Reading Data from file...")
+    num_nucs = Vector{Int32}(undef, 12)
+    concs = Vector{Float64}(undef, 3852)
+    mats = Vector{Int32}(undef, 3852)
+    unionized_energy_array = Vector{Float64}(undef, 4012565)
+    index_grid = Vector{Int32}(undef, 1424460575)
+    nuclide_grid = Vector{immutableNuclideGridPoint}(undef, 4012565)
+    p_energy_samples = Vector{Float64}(undef, 0)
+    mat_samples = Vector{Int32}(undef, 0)
+    length_num_nucs = 12
+    length_concs = 3852
+    length_mats = 3852
+    length_unionized_energy_array = 4012565
+    length_index_grid = 1424460575
+    length_nuclide_grid = 4012565
+    length_p_energy_samples = 0
+    length_mat_samples = 0
+    max_num_nucs = 321
+
+    # Read the num_nucs value amount of integers from the file
+    for i in 1:length_num_nucs
+        num_nucs[i] = parse(Int32, readline(file))
+    end
+
+    # Print all data inside num_nucs array
+    # println("num_nucs: ", num_nucs)
+
+
+    # Read the concs value amount of floats from the file
+    for i in 1:length_concs
+        concs[i] = parse(Float64, readline(file))
+    end
+
+    # Read the mats value amount of integers from the file
+    for i in 1:length_mats
+        mats[i] = parse(Int32, readline(file))
+    end
+
+    # Read the unionized_energy_array value amount of floats from the file
+    for i in 1:length_unionized_energy_array
+        unionized_energy_array[i] = parse(Float64, readline(file))
+    end
+
+    # Read the index_grid value amount of integers from the file
+    for i in 1:length_index_grid
+        index_grid[i] = parse(Int32, readline(file))
+    end
+
+    # Read the nuclide_grid value amount of NuclideGridPoint structs from the file
+    for i in 1:length_nuclide_grid
+        line = readline(file)
+        energy = parse(Float64, line)
+        line = readline(file)
+        total_xs = parse(Float64, line)
+        line = readline(file)
+        elastic_xs = parse(Float64, line)
+        line = readline(file)
+        absorbtion_xs = parse(Float64, line)
+        line = readline(file)
+        fission_xs = parse(Float64, line)
+        line = readline(file)
+        nu_fission_xs = parse(Float64, line)
+        nuclide_grid[i] = immutableNuclideGridPoint(energy, total_xs, elastic_xs, absorbtion_xs, fission_xs, nu_fission_xs)
+    end
+
+    # Close the file
+    close(file)
+    # println("File closed successfully.")
 
     return immutableSimulationData(num_nucs, concs, mats, unionized_energy_array, index_grid, nuclide_grid, length_num_nucs, length_concs, length_mats, length_unionized_energy_array, length_index_grid, length_nuclide_grid, max_num_nucs, p_energy_samples, length_p_energy_samples, mat_samples, length_mat_samples)
 
