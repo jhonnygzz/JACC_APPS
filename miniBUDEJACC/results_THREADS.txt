@@ -14,7 +14,7 @@ InstalledDir: /auto/software/swtree/ubuntu22.04/x86_64/llvm/17.0.6/bin
 
 
 32 THREADS:
-C
+C (OpenMP)
 - Kernel time:    1430.176 ms
 - Average time:   143.018 ms
 - Interactions/s: 11.175 billion

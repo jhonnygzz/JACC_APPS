@@ -43,8 +43,9 @@ include("BasicBUDEPreferences.jl")
     import CUDA
     using CUDA # to use cuprintln
     println("Using CUDA as back end")
-    println("CUDA version: ", CUDA.versioninfo())
+    println(CUDA.versioninfo())
 
+    CUDA.device!(1) #USE SECOND GPU INSTEAD
     device = CUDA.device()
     println("device: $(CUDA.name(device))")
 
@@ -102,6 +103,7 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
   #CUDA.@profile sin.(etotals)
 
   println("Type of protein: ", typeof(protein))
+  println("protein array location: ", typeof(protein).parameters[3]) #oneAPI.oneL0.DeviceBuffer means its in the GPU.
 
 
 

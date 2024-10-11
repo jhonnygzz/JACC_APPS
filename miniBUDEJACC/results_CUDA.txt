@@ -12,18 +12,18 @@ C (CUDA):
 - GFInst/s:       6517.083
 
 JULIA(CUDA):
-- Kernel time:    131.214 ms
-- Average time:   13.121 ms
-- Interactions/s: 121.808 billion
-- GFLOP/s:        3961.305
-- GFInst/s:       3045.202
+- Kernel time:    131.171 ms
+- Average time:   13.117 ms
+- Interactions/s: 121.848 billion
+- GFLOP/s:        3962.600
+- GFInst/s:       3046.198
 
 JACC:
-- Kernel time:    210.176 ms
-- Average time:   21.018 ms
-- Interactions/s: 76.045 billion
-- GFLOP/s:        2294.791
-- GFInst/s:       1901.133
+- Kernel time:    149.743 ms
+- Average time:   14.974 ms
+- Interactions/s: 106.736 billion
+- GFLOP/s:        3220.920
+- GFInst/s:       2668.390
 
 KERNELABSTRACTIONS:
 ONLY WORKING ON A100, GIVES AN ERROR ON H100 DUE TO VERSION RESTRICTIONS.
