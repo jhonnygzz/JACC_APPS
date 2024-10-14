@@ -1,6 +1,9 @@
 Justify(AMD EPYC 7742 64-Core Processor):
-JULIA: export JULIA_NUM_THREADS=
-C: export OMP_NUM_THREADS=
+JULIA: export JULIA_NUM_THREADS=#. 
+
+Also used export JULIA_EXCLUSIVE=1. NEED TO DO THIS.
+
+C: export OMP_NUM_THREADS=#.
 
 C CODE COMPILATION:
 Currently Loaded Modules:

@@ -30,3 +30,23 @@ KERNELABSTRACTIONS
 - GFLOP/s:        706.771
 - GFInst/s:       543.321
 
+
+
+
+Frontier (AMD Instinct MI250X)
+
+
+JULIA (AMDGPU)
+- Kernel time:    119.817 ms
+- Average time:   11.982 ms
+- Interactions/s: 133.395 billion
+- GFLOP/s:        4338.106
+- GFInst/s:       3334.863
+
+JACC
+- Kernel time:    127.579 ms
+- Average time:   12.758 ms
+- Interactions/s: 125.278 billion
+- GFLOP/s:        3780.479
+- GFInst/s:       3131.960
+

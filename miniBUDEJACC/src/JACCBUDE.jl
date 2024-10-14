@@ -103,7 +103,7 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
   #CUDA.@profile sin.(etotals)
 
   println("Type of protein: ", typeof(protein))
-  println("protein array location: ", typeof(protein).parameters[3]) #oneAPI.oneL0.DeviceBuffer means its in the GPU.
+  #println("protein array location: ", typeof(protein).parameters[3]) #oneAPI.oneL0.DeviceBuffer means its in the GPU.
 
 
 

@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Set up project directory
-PROJ_DIR=/ccs/proj/csc594/ahuante/JACC_APPS/miniBUDEJACC
+PROJ_DIR=/ccs/proj/csc594/ahuante/miniBUDE/src/julia/miniBUDE.jl
+AMDGPU_DIR=$PROJ_DIR/AMDGPU
+
+
 # good practice to avoid conflicts with existing default modules
 module purge
 
@@ -11,15 +14,7 @@ module load julia/1.10.2
 module load rocm/6.2.0
 
 # Install and set up packages
-julia --project=$PROJ_DIR -e 'import Pkg; Pkg.instantiate()'
-
-# Set backend preference
-julia --project=$PROJ_DIR -e '
-include("src/BasicBUDEPreferences.jl")
-using .BasicBUDEPreferences
-BasicBUDEPreferences.set_backend("amdgpu")
-println("Backend set to: ", BasicBUDEPreferences.get_backend())
-'
+julia --project=$AMDGPU_DIR -e 'import Pkg; Pkg.instantiate()'
 
 echo "Configuration complete."
 
