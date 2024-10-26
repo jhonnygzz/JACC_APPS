@@ -3,7 +3,7 @@
 #SBATCH -J AMD_miniBUDE_JACC
 #SBATCH -o %x-%j.out
 #SBATCH -e %x-%j.err
-#SBATCH -t 00:04:00
+#SBATCH -t 00:10:00
 #SBATCH -p batch
 #SBATCH -N 1
 

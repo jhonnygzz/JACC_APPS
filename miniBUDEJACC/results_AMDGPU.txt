@@ -50,3 +50,14 @@ JACC
 - GFLOP/s:        3780.479
 - GFInst/s:       3131.960
 
+C
+- Kernel time:    193.845 ms
+- Average time:   19.384 ms 
+- Interactions/s: 82.452 billion
+- GFLOP/s:        2681.416
+- GFInst/s:       2061.304
+
+ONLY WORKING ON MI100, GIVES AN ERROR ON MI250X DUE TO VERSION RESTRICTIONS.
+
+
+NEW RESULTS (BM2):
