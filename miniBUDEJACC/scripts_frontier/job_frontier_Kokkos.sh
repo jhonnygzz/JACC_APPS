@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A CSC594
-#SBATCH -J AMD_miniBUDE_C
+#SBATCH -J AMD_miniBUDE_Kokkos
 #SBATCH -o %x-%j.out
 #SBATCH -e %x-%j.err
 #SBATCH -t 00:05:00
@@ -12,7 +12,7 @@ date
 # project directory with the executable
 cd /ccs/proj/csc594/ahuante/miniBUDE/build
 
-srun -n 1 --gpus=1 ./hip-bude --deck ../data/bm2 --ppwi 2 --wgsize 128
+srun -n 1 --gpus=1 ./kokkos-bude --deck ../data/bm2 --ppwi 2 --wgsize 32
 
 echo "Job completed."
 

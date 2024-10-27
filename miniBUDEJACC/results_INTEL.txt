@@ -14,9 +14,16 @@ JACC:
 - GFLOP/s:        2832.032
 - GFInst/s:       2347.273
 
-JULIA:
+JULIA (OneAPI):
 - Kernel time:    42745.295 ms
 - Average time:   4274.530 ms
 - Interactions/s: 109.462 billion
 - GFLOP/s:        3831.959
 - GFInst/s:       2736.557
+
+OpenCL (SYCL):
+- Kernel time:    39528.280 ms
+- Average time:   3952.828 ms
+- Interactions/s: 118.371 billion
+- GFLOP/s:        4143.823
+- GFInst/s:       2959.272

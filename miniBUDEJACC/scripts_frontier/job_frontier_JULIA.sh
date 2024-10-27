@@ -3,7 +3,7 @@
 #SBATCH -J AMD_miniBUDE_JULIA
 #SBATCH -o %x-%j.out
 #SBATCH -e %x-%j.err
-#SBATCH -t 00:04:00
+#SBATCH -t 00:05:00
 #SBATCH -p batch
 #SBATCH -N 1
 
@@ -13,7 +13,7 @@ BUDE_DIR=/ccs/proj/csc594/ahuante/miniBUDE/src/julia/miniBUDE.jl
 BUDE_AMDGPU=$BUDE_DIR/AMDGPU
 BUDE_EXE=$BUDE_DIR/src/AMDGPU.jl
 
-srun -n 1 --gpus=1 julia --project=$BUDE_AMDGPU $BUDE_EXE
+srun -n 1 --gpus=1 julia --project=$BUDE_AMDGPU $BUDE_EXE -p 2 -w 128
 
 echo "Job completed."
 

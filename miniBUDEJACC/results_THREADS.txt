@@ -31,6 +31,13 @@ KernelAbstractions:
 - GFLOP/s:        668.830
 - GFInst/s:       534.947
 
+Kokkos (OpenMP):
+- Kernel time:    138830.878 ms
+- Average time:   13883.088 ms
+- Interactions/s: 33.703 billion
+- GFLOP/s:        1013.946
+- GFInst/s:       842.572
+
 
 64 Threads:
 C (OpenMP)
@@ -60,6 +67,13 @@ KernelAbstractions:
 - Interactions/s: 34.044 billion
 - GFLOP/s:        1064.113
 - GFInst/s:       851.105
+
+Kokkos(OpenMP):
+- Kernel time:    72864.659 ms
+- Average time:   7286.466 ms
+- Interactions/s: 64.215 billion
+- GFLOP/s:        1931.897
+- GFInst/s:       1605.373
 
 
 
@@ -91,3 +105,10 @@ KERNELABSTRACTIONS:
 - Interactions/s: 67.122 billion
 - GFLOP/s:        2098.024
 - GFInst/s:       1678.052
+
+KOKKOS (OpenMP):
+- Kernel time:    45427.174 ms
+- Average time:   4542.717 ms
+- Interactions/s: 103.000 billion
+- GFLOP/s:        3098.741
+- GFInst/s:       2574.999

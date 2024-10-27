@@ -28,12 +28,12 @@ Kokkos (CUDA):
 - GFLOP/s:        4782.785
 - GFInst/s:       3415.581
 
+OpenCL (CUDA):
+- Kernel time:    10993.817 ms
+- Average time:   1099.382 ms
+- Interactions/s: 425.603 billion
+- GFLOP/s:        14899.121
+- GFInst/s:       10640.066
 
-
-
-
-NEW RESULTS (bm2):
-
-JACC:
 
 
