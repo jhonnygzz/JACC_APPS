@@ -68,7 +68,7 @@ end
 
 function load_sim_data_hash()
     # fname = "../../../OLD/XSBench/cuda/SimulationDataThree.txt"
-    fname = "../../../OLD/XSBench/cuda/SimulationDataHash.txt"
+    fname = "/autofs/nccs-svm1_proj/csc594/jvalglz/XSBench/hip/SimulationDataHash.txt"
     # println("Attempting to open file $fname...")
 
 
@@ -80,8 +80,7 @@ function load_sim_data_hash()
         error("Failed to open file: $fname")
     end
 
-    println("Reading Data from file $(basename(fname))...")
-
+    println("Reading Data from file...")
     num_nucs = Vector{Int32}(undef, 12)
     concs = Vector{Float64}(undef, 3852)
     mats = Vector{Int32}(undef, 3852)
@@ -158,7 +157,7 @@ end
 
 function load_sim_data()
     # fname = "../../../OLD/XSBench/cuda/SimulationDataThree.txt"
-    fname = "../../../OLD/XSBench/cuda/SimulationDataThree.txt"
+    fname = "/autofs/nccs-svm1_proj/csc594/jvalglz/XSBench/hip/SimulationData.txt"
     # println("Attempting to open file $fname...")
 
 
@@ -170,7 +169,7 @@ function load_sim_data()
         error("Failed to open file: $fname")
     end
 
-    println("Reading Data from file $(basename(fname))...")
+    println("Reading Data from file...")
     num_nucs = Vector{Int32}(undef, 12)
     concs = Vector{Float64}(undef, 3852)
     mats = Vector{Int32}(undef, 3852)
