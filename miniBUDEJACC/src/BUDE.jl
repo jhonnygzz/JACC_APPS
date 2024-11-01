@@ -68,7 +68,7 @@ end
   iterations::UInt = DefaultInterations
   wgsize::UInt = DefaultWGSize
   ppwi::UInt = DefaultPPWI
-  deck::String = "src/data/bm1" #The directory containing the input data files for the simulation.
+  deck::String = "src/data/bm2" #The directory containing the input data files for the simulation.
 end
 
 struct Deck
@@ -198,15 +198,15 @@ function main()
   poses = permutedims( # reshape is column order so we flip it back again
     reshape(
       #read_structs("$(params.deck)/poses.in", Float32),  # read poses as one long array
-      read_structs("src/data/bm1/poses.in", Float32),
+      read_structs("src/data/bm2/poses.in", Float32),
       (params.numposes, 6), # reshape it to 6 slices of numposes sized rows
     ),
   )
 
   deck = Deck(
-    read_structs("src/data/bm1/protein.in", Atom),
-    read_structs("src/data/bm1/ligand.in", Atom),
-    read_structs("src/data/bm1/forcefield.in", FFParams),
+    read_structs("src/data/bm2/protein.in", Atom),
+    read_structs("src/data/bm2/ligand.in", Atom),
+    read_structs("src/data/bm2/forcefield.in", FFParams),
     poses,
   )
 
@@ -238,7 +238,7 @@ function main()
     end
   end
 
-  ref_energies = open("src/data/bm1/ref_energies.out", "r")
+  ref_energies = open("src/data/bm2/ref_energies.out", "r")
   n_ref_poses = size(deck.poses)[2]
   if n_ref_poses > RefNPoses
     println("Only validating the first $(RefNPoses) poses")

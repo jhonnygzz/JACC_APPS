@@ -1,22 +1,29 @@
 Clark (Intel(R) Arc(TM) A770 Graphics)
 
 C (SYCL):
-- Kernel time:    161.150 ms
-- Average time:   16.115 ms
-- Interactions/s: 99.180 billion
-- GFLOP/s:        3225.431 
-- GFInst/s:       2479.509
+- Kernel time:    40143.374 ms
+- Average time:   4014.337 ms
+- Interactions/s: 116.557 billion
+- GFLOP/s:        4080.330
+- GFInst/s:       2913.929
 
 JACC:
-- Kernel time:    159.866 ms
-- Average time:   15.987 ms
-- Interactions/s: 99.977 billion
-- GFLOP/s:        3016.961
-- GFInst/s:       2499.419
+- Kernel time:    49834.394 ms
+- Average time:   4983.439 ms
+- Interactions/s: 93.891 billion
+- GFLOP/s:        2832.032
+- GFInst/s:       2347.273
 
-JULIA (oneAPI):
-- Kernel time:    161.180 ms
-- Average time:   16.118 ms
-- Interactions/s: 99.162 billion
-- GFLOP/s:        3224.840
-- GFInst/s:       2479.055
+JULIA (OneAPI):
+- Kernel time:    42745.295 ms
+- Average time:   4274.530 ms
+- Interactions/s: 109.462 billion
+- GFLOP/s:        3831.959
+- GFInst/s:       2736.557
+
+OpenCL (SYCL):
+- Kernel time:    39528.280 ms
+- Average time:   3952.828 ms
+- Interactions/s: 118.371 billion
+- GFLOP/s:        4143.823
+- GFInst/s:       2959.272

@@ -1,32 +1,37 @@
-Cousteau (AMD Instinct MI100)
-Used kernel parameters for all of them: <<<256,64>>> (nblocks, nthreads)
+Frontier (MI250X)
 Used FAST_MATH and NON-SHARED MEMORY.
 
-C (HIP)
-- Kernel time:    182.833 ms
-- Average time:   18.283 ms
-- Interactions/s: 87.418 billion
-- GFLOP/s:        2842.918
-- GFInst/s:       2185.456
+JACC:
+- Kernel time:    62272.198 ms
+- Average time:   6227.220 ms
+- Interactions/s: 75.138 billion
+- GFLOP/s:        2266.383
+- GFInst/s:       1878.446
 
-JULIA (AMDGPU)
-- Kernel time:    136.781 ms
-- Average time:   13.678 ms
-- Interactions/s: 116.851 billion
-- GFLOP/s:        3800.083
-- GFInst/s:       2921.264
+JULIA:
+- Kernel time:    38963.256 ms
+- Average time:   3896.326 ms
+- Interactions/s: 120.087 billion
+- GFLOP/s:        4203.915
+- GFInst/s:       3002.186
 
-JACC
-- Kernel time:    140.222 ms
-- Average time:   14.022 ms
-- Interactions/s: 113.983 billion
-- GFLOP/s:        3439.631
-- GFInst/s:       2849.582
+C (HIP):
+- Kernel time:    38894.250 ms
+- Average time:   3889.425 ms
+- Interactions/s: 120.301 billion
+- GFLOP/s:        4211.373
+- GFInst/s:       3007.513
 
-KERNELABSTRACTIONS
-- Kernel time:    735.427 ms
-- Average time:   73.543 ms
-- Interactions/s: 21.733 billion
-- GFLOP/s:        706.771
-- GFInst/s:       543.321
+Kokkos (HIP):
+- Kernel time:    52752.673 ms
+- Average time:   5275.267 ms
+- Interactions/s: 88.697 billion
+- GFLOP/s:        3105.022
+- GFInst/s:       2217.422
 
+OpenCL (HIP):
+- Kernel time:    34674.181 ms
+- Average time:   3467.418 ms
+- Interactions/s: 134.942 billion
+- GFLOP/s:        4723.924
+- GFInst/s:       3373.546

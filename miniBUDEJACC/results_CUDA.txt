@@ -1,31 +1,39 @@
 HUDSON (H100, CUDA):
-FAST_MATH IS ENABLED FOR JULIA miniBUDE and C CUDA miniBUDE. But it does not play a big factor in performance.
-println("Using kernel parameters: <<<$(nblocks),$(nthreads)>>> 1:$nposes")
-Used kernel parameters for all of them: <<<256,64>>>
-Used FAST_MATH and NON-SHARED MEMORY.
 
 C (CUDA):
-- Kernel time:    61.312 ms
-- Average time:   6.131 ms
-- Interactions/s: 260.683 billion
-- GFLOP/s:        8477.649
-- GFInst/s:       6517.083
-
-JULIA(CUDA):
-- Kernel time:    131.214 ms
-- Average time:   13.121 ms
-- Interactions/s: 121.808 billion
-- GFLOP/s:        3961.305
-- GFInst/s:       3045.202
+- Kernel time:    18918.322 ms
+- Average time:   1891.832 ms
+- Interactions/s: 247.326 billion
+- GFLOP/s:        8658.179
+- GFInst/s:       6183.156
 
 JACC:
-- Kernel time:    210.176 ms
-- Average time:   21.018 ms
-- Interactions/s: 76.045 billion
-- GFLOP/s:        2294.791
-- GFInst/s:       1901.133
+- Kernel time:    48102.543 ms
+- Average time:   4810.254 ms
+- Interactions/s: 97.271 billion
+- GFLOP/s:        2933.995
+- GFInst/s:       2431.783
 
-KERNELABSTRACTIONS:
-ONLY WORKING ON A100, GIVES AN ERROR ON H100 DUE TO VERSION RESTRICTIONS.
+JULIA (CUDA.jl):
+- Kernel time:    15276.691 ms
+- Average time:   1527.669 ms
+- Interactions/s: 306.283 billion
+- GFLOP/s:        10722.100
+- GFInst/s:       7657.086
+
+Kokkos (CUDA):
+- Kernel time:    34247.453
+- Average time:   3424.745
+- Interactions/s: 136.623 billion
+- GFLOP/s:        4782.785
+- GFInst/s:       3415.581
+
+OpenCL (CUDA):
+- Kernel time:    10993.817 ms
+- Average time:   1099.382 ms
+- Interactions/s: 425.603 billion
+- GFLOP/s:        14899.121
+- GFInst/s:       10640.066
+
 
 
