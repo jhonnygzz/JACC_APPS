@@ -2,13 +2,13 @@ Frontier (MI250X)
 Used FAST_MATH and NON-SHARED MEMORY.
 
 JACC:
-- Kernel time:    62272.198 ms
-- Average time:   6227.220 ms
-- Interactions/s: 75.138 billion
-- GFLOP/s:        2266.383
-- GFInst/s:       1878.446
+- Kernel time:    62467.809 ms
+- Average time:   6246.781 ms
+- Interactions/s: 74.903 billion
+- GFLOP/s:        2434.852
+- GFInst/s:       1872.564
 
-JULIA:
+JULIA (AMDGPU.jl):
 - Kernel time:    38963.256 ms
 - Average time:   3896.326 ms
 - Interactions/s: 120.087 billion

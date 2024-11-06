@@ -1,27 +1,7 @@
 # IMPORTANT NOTES
 
-#TODO: Update github repository on how to run the code: DONE
-#Compare apples to apples
-#Start with the threads version always for code translation to JACC
-#TODO: Check its using elapsed correctly: DONE
-#TODO: Print the time: DONE
-#TODO: Make sure the code is using the CUDA device: DONE
-#TODO: First compare the original versions CUDA vs Threads vs AMDGPU: Done
-# We cannot have different if statements (only one function for the kernel)
-# Play with mi250x in the future
 # Everything related to calculations uses Float32 (Single Precision). For output related, it uses Float64 (Double precision), examples include Kernel time, Average time, etc.
-#TODO: Should the time calculation be exactly before the parallel_for?
 
-# There is a process in execution when running this code in CUDA (A100):
-# miniBUDE CUDA: 0   N/A  N/A   1374566      C   julia                                         446MiB
-# miniBUDEJACC CUDA:  0   N/A  N/A   1378053      C   julia                                        1134MiB
-# Ran a profiler (NVIDIA Nsight Systems)
-# Had to do CUDA.synchronize() to get correct times when using CUDA. This does not happen with AMDGPU
-# Difference between the original CUDA code and this code may be the work distribution affecting the order of operations
-# Can't do print statements of variables inside the kernel function since it is running on the GPU
-# Already compared the output of both JACC-CUDA and CUDA. The output is mostly the same, expect some energies are 0.01 different.
-# TODO: Print the values of the variables. (protein, forcefield, etc)
-# after updating jacc to jacc#main, now the it synchronizes correctly without me having to do cuda.synchronize()
 
 
 
@@ -29,6 +9,7 @@ import JACC
 import Pkg
 using Test
 using StaticArrays
+using InteractiveUtils # To use @code_llvm
 #using JACC
 include("BUDE.jl")
 
@@ -109,7 +90,6 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
 
   # warmup
   fasten_main(
-    Val(convert(Int, params.wgsize)),
     Val(convert(Int, params.ppwi)),
     protein,
     ligand,
@@ -117,6 +97,8 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
     poses,
     etotals,
   )
+
+  #@code_llvm fasten_main(Val(4), protein, ligand, forcefield, poses, etotals)
 
 
   # ORIGINAL ELAPSED FROM THREADED.JL
@@ -133,13 +115,11 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
   # end
 
 
-  #MODIFIED ELAPSED FROM THREADED.JL
   total_elapsed = 0.0
   for i = 1:params.iterations
     start_time = time()
     begin
       fasten_main(
-        Val(convert(Int, params.wgsize)),
         Val(convert(Int, params.ppwi)),
         protein,
         ligand,
@@ -167,19 +147,18 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
   
   #(etotals, total_elapsed, params.wgsize)
   #(etotals_cpu, elapsed, params.wgsize)
-  (etotals_cpu, total_elapsed, params.wgsize)
+  (etotals_cpu, total_elapsed, params.ppwi)
 end
 
 
 @fastmath function fasten_main(
-  ::Val{WGSIZE},
   ::Val{PPWI},
   protein::JACC.Array{Atom},
   ligand::JACC.Array{Atom},
   forcefield::JACC.Array{FFParams},
   poses::JACC.Array{Float32,2},
   etotals::JACC.Array{Float32},
-) where {WGSIZE, PPWI}
+) where {PPWI}
 
   nposes::Int = size(poses)[2]
   nligand::Int = length(ligand)
@@ -307,7 +286,7 @@ end
   JACC.parallel_for(total_work_items, kernel)
 end
 
-
+main()
 
 
 
@@ -637,4 +616,3 @@ end
 
 
 
-main()

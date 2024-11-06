@@ -18,11 +18,11 @@ JULIA:
 - GFInst/s:       755.879
 
 JACC:
-- Kernel time:    218081.015 ms
-- Average time:   21808.102 ms
-- Interactions/s: 21.455 billion
-- GFLOP/s:        647.157
-- GFInst/s:       536.383
+- Kernel time:    200775.604 ms
+- Average time:   20077.560 ms
+- Interactions/s: 23.305 billion
+- GFLOP/s:        728.428
+- GFInst/s:       582.615
 
 KernelAbstractions:
 - Kernel time:    218666.524 ms
@@ -55,11 +55,11 @@ JULIA:
 - GFInst/s:       1222.342
 
 JACC:
-- Kernel time:    133465.918 ms
-- Average time:   13346.592 ms
-- Interactions/s: 35.058 billion
-- GFLOP/s:        1057.443
-- GFInst/s:       876.441
+- Kernel time:    128226.136 ms
+- Average time:   12822.614 ms
+- Interactions/s: 36.490 billion
+- GFLOP/s:        1140.568
+- GFInst/s:       912.255
 
 KernelAbstractions:
 - Kernel time:    137438.975 ms
@@ -93,11 +93,11 @@ JULIA:
 - GFInst/s:       2428.608
 
 JACC:
-- Kernel time:    67912.915 ms
-- Average time:   6791.291 ms
-- Interactions/s: 68.897 billion
-- GFLOP/s:        2078.141
-- GFInst/s:       1722.426
+- Kernel time:    64894.654 ms
+- Average time:   6489.465 ms
+- Interactions/s: 72.101 billion
+- GFLOP/s:        2253.663
+- GFInst/s:       1802.536
 
 KERNELABSTRACTIONS:
 - Kernel time:    69708.765 ms

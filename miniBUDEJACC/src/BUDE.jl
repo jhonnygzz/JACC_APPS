@@ -7,8 +7,8 @@ import Base.read
 const DefaultInterations = 10
 const DefaultNPoses = 65536
 const RefNPoses = 65536 #Number of Poses (number of different orientations and positions of the ligand molecule)
-const DefaultWGSize = 64 # Work group size (divide work into groups)
-const DefaultPPWI = 4 #Poses per work item (A single thread of the GPU will process 4 poses)
+const DefaultWGSize = 64 # Work group size (divide work into groups) (Will be specified through the terminal)
+const DefaultPPWI = 4 #Poses per work item (A single thread of the GPU will process 4 poses) (Will be specified through the terminal)
 
 const Zero = 0.0f0
 const Quarter = 0.25f0
@@ -126,6 +126,8 @@ end
 
 function print_timings(params::Params, deck::Deck, elapsedSeconds::Float64, wgsize::UInt)
 
+  #print("wgsize: ", wgsize)
+
   # Average time per iteration
   averageIterationSeconds = elapsedSeconds / params.iterations
 
@@ -223,6 +225,7 @@ function main()
   GC.enable(false)
 
   (energies, rumtimeSeconds, ppwi) = run(params, deck) #ds[deviceIndex])
+  #print("ppwi:", ppwi)
 
   GC.enable(true)
   set_zero_subnormals(false)

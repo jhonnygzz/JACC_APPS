@@ -8,11 +8,18 @@ C (CUDA):
 - GFInst/s:       6183.156
 
 JACC:
-- Kernel time:    48102.543 ms
-- Average time:   4810.254 ms
-- Interactions/s: 97.271 billion
-- GFLOP/s:        2933.995
-- GFInst/s:       2431.783
+- Kernel time:    47965.288 ms
+- Average time:   4796.529 ms
+- Interactions/s: 97.550 billion
+- GFLOP/s:        3171.040
+- GFInst/s:       2438.742
+
+JACC using @inline:
+- Kernel time:    45600.214 ms
+- Average time:   4560.021 ms
+- Interactions/s: 102.609 billion
+- GFLOP/s:        3335.507
+- GFInst/s:       2565.228
 
 JULIA (CUDA.jl):
 - Kernel time:    15276.691 ms
@@ -22,8 +29,8 @@ JULIA (CUDA.jl):
 - GFInst/s:       7657.086
 
 Kokkos (CUDA):
-- Kernel time:    34247.453
-- Average time:   3424.745
+- Kernel time:    34247.453 ms
+- Average time:   3424.745 ms
 - Interactions/s: 136.623 billion
 - GFLOP/s:        4782.785
 - GFInst/s:       3415.581

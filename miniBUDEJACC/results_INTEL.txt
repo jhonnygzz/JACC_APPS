@@ -8,11 +8,11 @@ C (SYCL):
 - GFInst/s:       2913.929
 
 JACC:
-- Kernel time:    49834.394 ms
-- Average time:   4983.439 ms
-- Interactions/s: 93.891 billion
-- GFLOP/s:        2832.032
-- GFInst/s:       2347.273
+- Kernel time:    49838.142 ms
+- Average time:   4983.814 ms
+- Interactions/s: 93.884 billion
+- GFLOP/s:        3051.876
+- GFInst/s:       2347.097
 
 JULIA (OneAPI):
 - Kernel time:    42745.295 ms
