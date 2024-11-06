@@ -102,7 +102,7 @@ function check_solutions(
     !failed
 
   end
-  println("size of a: ", length(data.a))
+  # println("size of a: ", length(data.a))
   
   a_valid = validate_xs("a", data.a, gold_a)
   b_valid = validate_xs("b", data.b, gold_b)
@@ -125,7 +125,7 @@ end
 @with_kw mutable struct Config
   list::Bool = false
   device::Int = 1
-  numtimes::Int = 10
+  numtimes::Int = 100
   arraysize::Int = 33554432
   float::Bool = false
   triad_only::Bool = false
@@ -194,6 +194,7 @@ function main()
   ds = devices()
   # TODO implement substring device match
   if config.device < 1 || config.device > length(ds)
+    
     error("Device $(config.device) out of range (1..$(length(ds))), NOTE: Julia is 1-indexed")
   else
     device = ds[config.device]
@@ -304,10 +305,10 @@ function main()
   GC.enable(false)
 
   (data, context) = make_stream(config.arraysize, scalar, device, config.csv)
-  println("Type of data.a in main (after make_stream): ", typeof(data.a))
+  # println("Type of data.a in main (after make_stream): ", typeof(data.a))
   tInit = run_init_arrays!(data, context, init)
   if benchmark == All
-    println("Type of data.a before benchmark: ", typeof(data.a))
+    # println("Type of data.a before benchmark: ", typeof(data.a))
     (timings, sum) = run_all!(data, context, config.numtimes)
     (tRead, result) = run_read_data(data, context)
     show_init(tInit, tRead)
@@ -319,7 +320,7 @@ function main()
       mk_row(timings.triad, "Triad", 3 * array_bytes),
       mk_row(timings.dot, "Dot", 2 * array_bytes),
     )
-    println("Type of data.a after benchmark: ", typeof(data.a))
+    # println("Type of data.a after benchmark: ", typeof(data.a))
   elseif benchmark == Nstream
     # println("Running Nstream %d times\n", config.numtimes)
     timings = run_nstream!(data, context, config.numtimes)

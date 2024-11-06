@@ -33,11 +33,12 @@ backend = "threads"
     backend = "cuda"
 
 elseif endswith(BasicBabelPreferences.backend, "amdgpu")
-    Pkg.add(; name = "AMDGPU", version = "v0.8.11")
+    # Pkg.add(; name = "AMDGPU", version = "v0.8.11")
     # Pkg.add(; name = "AMDGPU", version = "v1.0.3") 
-    # Pkg.add("AMDGPU")
-    Pkg.update("AMDGPU")
     import AMDGPU
+    Pkg.add("AMDGPU")
+    Pkg.update("AMDGPU")
+    
     # using AMDGPU
     println("Using AMDGPU as back end")
     
@@ -56,7 +57,33 @@ function devices()::Vector{DeviceWithRepr}
         return !CUDA.functional(false) ? String[] :
         map(d -> (d, "$(CUDA.name(d)) ($(repr(d)))", "CUDA.jl"), CUDA.devices())
     elseif backend == "amdgpu"
-        return AMDGPU.devices()
+        try
+            # Check if ROCm GPUs are available
+            if AMDGPU.has_rocm_gpu()
+              println("ROCm GPU detected.")
+              
+              # Retrieve the list of ROCm devices
+              devices = AMDGPU.devices()
+              # println("Detected devices: $devices")
+              
+              # Sort the devices by their string representation
+              sorted_devices = sort(devices, by = repr)
+              # println("Sorted devices: $sorted_devices")
+              
+              # Map the sorted devices to the desired format
+              device_list = map(x -> (x, repr(x), "AMDGPU.jl"), sorted_devices)
+              # println("Device list: $device_list")
+              
+              return device_list
+            else
+              println("No ROCm GPU detected.")
+              return DeviceWithRepr[]
+            end
+          catch e
+            # Handle any errors that occur during the process
+            println("Error in devices(): $e")
+            return DeviceWithRepr[]
+          end
     else
         return [(undef, "$(Sys.cpu_info()[1].model) ($(Threads.nthreads())T)", "Threaded")]
     end
@@ -92,11 +119,11 @@ function make_stream(
     elseif backend == "amdgpu"
         # XXX AMDGPU doesn't expose an API for setting the default like CUDA.device!()
         # but AMDGPU.get_default_agent returns DEFAULT_AGENT so we can do it by hand
-        AMDGPU.DEFAULT_AGENT[] = device[1]
-        selected = AMDGPU.get_default_agent()
+        # AMDGPU.DEFAULT_AGENT[] = device[1]
+        # selected = AMDGPU.get_default_agent()
         if !silent
-            println("Using GPU HSA device: $(AMDGPU.get_name(selected)) ($(repr(selected)))")
-            println("Kernel parameters   : <<<$(arraysize),$(TBSize)>>>")
+            # println("Using GPU HSA device: $(AMDGPU.get_name(selected)) ($(repr(selected)))")
+            # println("Kernel parameters   : <<<$(arraysize),$(TBSize)>>>")
         end
     else
         if !silent
@@ -105,33 +132,27 @@ function make_stream(
         end
     end
 
-    a = JACC.Array{T}(undef, arraysize)
-    b = JACC.Array{T}(undef, arraysize)
-    c = JACC.Array{T}(undef, arraysize)
-    # println("Type of a in make_stream: ", typeof(a))
-
-    # data = JACCData{T}(a, b, c, scalar, arraysize)
-    # println("Type of data.a in make_stream inside data: ", typeof(data.a))
+    # a = JACC.Array{T}(undef, arraysize)
+    # b = JACC.Array{T}(undef, arraysize)
+    # c = JACC.Array{T}(undef, arraysize)
         return (
         JACCData{T}(
-            a,
-            b,
-            c,
+            JACC.Array{T}(undef, arraysize),
+            JACC.Array{T}(undef, arraysize),
+            JACC.Array{T}(undef, arraysize),
             scalar,
             arraysize,
         ),
         nothing,
     )
-    return data, nothing
+    # return data, nothing
 
 end
 
 function init_arrays!(data::JACCData{T}, _, init::Tuple{T,T,T}) where {T}
-    # println("type of a before fill: ", typeof(data.a))
-    fill!(data.a, init[1])
-    fill!(data.b, init[2])
-    fill!(data.c, init[3])
-    # println("type of a after fill: ", typeof(data.a))
+    JACC.fill!(data.a, init[1])
+    JACC.fill!(data.b, init[2])
+    JACC.fill!(data.c, init[3])
 end
 
 function copy!(data::JACCData{T}, _) where {T}
@@ -140,14 +161,7 @@ function copy!(data::JACCData{T}, _) where {T}
         @inbounds c[i] = a[i]
         return
     end
-    # println("Type of data.a: ", typeof(data.a))
-    # println("a[1]: ", data.a[1])
-
-    # println("Type of data.a with JACC.array wrapping: ", typeof(JACC.Array(data.a)))
-    JACC.parallel_for(data.size, kernel, JACC.Array(data.a), JACC.Array(data.c))
-    # JACC.parallel_for(data.size, kernel, data.a, data.c)
-    # JACC.parallel_for(data.size, kernel, data.a, data.c)
-    # println("Type of data.a in copy! (end): ", typeof(data.a))
+    JACC.parallel_for(data.size, kernel, data.a, data.c)
 end
 
 function mul!(data::JACCData{T}, _) where {T}
@@ -155,7 +169,8 @@ function mul!(data::JACCData{T}, _) where {T}
         @inbounds b[i] = scalar * c[i]
         return
     end
-    JACC.parallel_for(data.size, kernel, JACC.Array(data.b), JACC.Array(data.c), data.scalar)
+    # JACC.parallel_for(data.size, kernel, JACC.Array(data.b), JACC.Array(data.c), data.scalar)
+    JACC.parallel_for(data.size, kernel, data.b, data.c, data.scalar)
 end
 
 function add!(data::JACCData{T}, _) where {T}
@@ -163,7 +178,8 @@ function add!(data::JACCData{T}, _) where {T}
         @inbounds c[i] = a[i] + b[i]
         return
     end
-    JACC.parallel_for(data.size, kernel, JACC.Array(data.a), JACC.Array(data.b), JACC.Array(data.c))
+    # JACC.parallel_for(data.size, kernel, JACC.Array(data.a), JACC.Array(data.b), JACC.Array(data.c))
+    JACC.parallel_for(data.size, kernel, data.a, data.b, data.c)
 end
 
 function triad!(data::JACCData{T}, _) where {T}
@@ -171,16 +187,27 @@ function triad!(data::JACCData{T}, _) where {T}
         @inbounds a[i] = b[i] + (scalar * c[i])
         return
     end
-    JACC.parallel_for(data.size, kernel, JACC.Array(data.a), JACC.Array(data.b), JACC.Array(data.c), data.scalar)
+    JACC.parallel_for(data.size, kernel, data.a, data.b,data.c, data.scalar)
 end
 
 function dot(data::JACCData{T}, _) where {T}
-    function kernel(i, a::AbstractArray{T}, b::AbstractArray{T}, c::AbstractArray{T})
-        @inbounds c[i] = a[i] * b[i]
+    function kernel(i, a::AbstractArray{T}, b::AbstractArray{T}, summation::AbstractArray{T})
+        # @inbounds c[i] = a[i] * b[i]
+        @inbounds summation[i] = a[i] * b[i]
         return
     end
-    JACC.parallel_for(data.size, kernel, JACC.Array(data.a), JACC.Array(data.b), JACC.Array(data.c))
-    return sum(data.c)
+
+    function reduce(i, summation::AbstractArray{T})
+        summation[i]
+    end
+    summation = JACC.Array{T}(undef, data.size)
+    JACC.parallel_for(data.size, kernel, data.a, data.b, summation)
+    # summation = JACC.parallel_reduce(data.size, reduce, summation)
+    # sum = Base.Array(summation)
+
+    # summation = sum(summation)
+    
+    return (Base.Array(JACC.parallel_reduce(data.size, reduce, summation)))[1]
 end
 
 function read_data(data::JACCData{T}, _)::VectorData{T} where {T}
