@@ -4,25 +4,22 @@ Make sure you are in the miniBUDEJACC directory.
 
 Run these commands: 
 ```shell
-julia --project=. -e 'import Pkg; Pkg.instantiate()'
-
 julia --project=.
-include("src/BasicBUDEPreferences.jl")
-using .BasicBUDEPreferences
+using JACC.JACCPreferences
+JACCPreferences.set_backend("amdgpu")
+using JACC
+@show JACC.JACCPreferences.backend  # Should show "amdgpu"
 
-BasicBUDEPreferences.set_backend("cuda")
-println(BasicBUDEPreferences.get_backend())
+julia --project=. -e 'import Pkg; Pkg.instantiate()'
 
 exit()
 
-julia --project=. -e 'include("src/JACCBUDE.jl")'
-or
-julia --project=. src/JACCBUDE.jl
+julia --project=. src/JACCBUDE.jl -p 2 --deck src/data/bm2
 ```
 
 Run profiler ([CUDA](https://cuda.juliagpu.org/stable/development/profiling/)):
 ```shell
-nsys profile julia --project=. -e 'include("src/JACCBUDE.jl")'
+nsys profile julia --project=. src/JACCBUDE.jl -p 2 --deck src/data/bm2
 nsys stats report1.nsys-rep
 ```
 
