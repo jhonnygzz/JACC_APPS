@@ -10,12 +10,63 @@ import Pkg
 using Test
 using StaticArrays
 using InteractiveUtils # To use @code_llvm
-#using JACC
+using Profile # for profiling
+#using JACC.JACCPreferences
 include("BUDE.jl")
 
+# import AMDGPU
+# device = AMDGPU.device()
 
-include("BasicBUDEPreferences.jl")
-@static if endswith(BasicBUDEPreferences.backend, "cuda")
+# I think this is no longer needed in JACC v0.1.0 (use JACC.JACCPreferences instead)
+# include("BasicBUDEPreferences.jl")
+# @static if endswith(BasicBUDEPreferences.backend, "cuda")
+#     # @TODO Julia Pkg.add will add target = :weakdeps in later versions
+#     Pkg.add(; name = "CUDA", version = "v5.4.3")
+
+#     #Pkg.add("CUDA")
+#     #Pkg.update("CUDA")
+#     import CUDA
+#     using CUDA # to use cuprintln
+#     println("Using CUDA as back end")
+#     println(CUDA.versioninfo())
+
+#     CUDA.device!(0) #USE FIRST GPU INSTEAD
+#     device = CUDA.device()
+#     println("device: $(CUDA.name(device))")
+
+# elseif endswith(BasicBUDEPreferences.backend, "amdgpu")
+#     #Pkg.add(; name = "AMDGPU", version = "v0.8.6")
+#     Pkg.add("AMDGPU")
+#     #Pkg.update("AMDGPU")
+#     import AMDGPU
+#     println("Using AMDGPU as back end")
+    
+#     device = AMDGPU.device()
+#     println("device: $device")
+#   elseif endswith(BasicBUDEPreferences.backend, "oneapi")
+#     Pkg.add("oneAPI")
+#     import oneAPI
+#     #using oneAPI
+#     println("Using oneAPI as back end")
+    
+#     device = oneAPI.device()
+#     println("device: $device")
+
+#   elseif endswith(BasicBUDEPreferences.backend, "threads")
+#     println("Using threads as back end")
+# end
+
+
+# const Device = (undef, "CPU", "Threaded")
+
+# function devices()
+#   return [Device]
+# end
+
+
+
+
+@static if endswith(JACC.JACCPreferences.backend, "cuda")
     # @TODO Julia Pkg.add will add target = :weakdeps in later versions
     Pkg.add(; name = "CUDA", version = "v5.4.3")
 
@@ -26,11 +77,11 @@ include("BasicBUDEPreferences.jl")
     println("Using CUDA as back end")
     println(CUDA.versioninfo())
 
-    CUDA.device!(1) #USE SECOND GPU INSTEAD
+    CUDA.device!(0) #USE FIRST GPU INSTEAD
     device = CUDA.device()
     println("device: $(CUDA.name(device))")
 
-elseif endswith(BasicBUDEPreferences.backend, "amdgpu")
+elseif endswith(JACC.JACCPreferences.backend, "amdgpu")
     #Pkg.add(; name = "AMDGPU", version = "v0.8.6")
     Pkg.add("AMDGPU")
     #Pkg.update("AMDGPU")
@@ -39,7 +90,7 @@ elseif endswith(BasicBUDEPreferences.backend, "amdgpu")
     
     device = AMDGPU.device()
     println("device: $device")
-  elseif endswith(BasicBUDEPreferences.backend, "oneapi")
+  elseif endswith(JACC.JACCPreferences.backend, "oneapi")
     Pkg.add("oneAPI")
     import oneAPI
     #using oneAPI
@@ -48,15 +99,14 @@ elseif endswith(BasicBUDEPreferences.backend, "amdgpu")
     device = oneAPI.device()
     println("device: $device")
 
-  elseif endswith(BasicBUDEPreferences.backend, "threads")
+  elseif endswith(JACC.JACCPreferences.backend, "threads")
     println("Using threads as back end")
+    println("Using max $(Threads.nthreads()) threads")
 end
 
-# const Device = (undef, "CPU", "Threaded")
 
-# function devices()
-#   return [Device]
-# end
+
+
 
 
 
@@ -115,6 +165,9 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
   # end
 
 
+
+
+
   total_elapsed = 0.0
   for i = 1:params.iterations
     start_time = time()
@@ -128,13 +181,39 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
         etotals,
       )
     end
-    #CUDA.synchronize()
-    #AMDGPU.synchronize()
     end_time = time()
     iteration_elapsed = end_time - start_time
     total_elapsed += iteration_elapsed
     println("Iteration $(i): $(iteration_elapsed) seconds")
   end
+
+  # @profile begin
+  #   total_elapsed = 0.0
+  #   for i = 1:params.iterations
+  #       start_time = time()
+  #       fasten_main(
+  #           Val(convert(Int, params.ppwi)),
+  #           protein,
+  #           ligand,
+  #           forcefield,
+  #           poses,
+  #           etotals,
+  #       )
+  #       end_time = time()
+  #       iteration_elapsed = end_time - start_time
+  #       total_elapsed += iteration_elapsed
+  #       println("Iteration $(i): $(iteration_elapsed) seconds")
+  #   end
+  # end
+
+  #   # Print profiling results in different formats
+  #   println("\nFlat profile (sorted by time):")
+  #   Profile.print(format=:flat, sortedby=:count)
+    
+  #   println("\nTree view of profile:")
+  #   Profile.print(maxdepth=30)
+
+
 
   average_time = total_elapsed / params.iterations
   println("Total elapsed time: $(total_elapsed) seconds")
@@ -151,25 +230,44 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
 end
 
 
+# @fastmath function fasten_main(
+#   ::Val{PPWI},
+#   protein::JACC.Array{Atom},
+#   ligand::JACC.Array{Atom},
+#   forcefield::JACC.Array{FFParams},
+#   poses::JACC.Array{Float32,2},
+#   etotals::JACC.Array{Float32},
+# ) where {PPWI}
+
+# @fastmath function fasten_main(
+#   ::Val{PPWI},
+#   protein::Vector{Atom},        # changed from AbstractArray{Atom,1}
+#   ligand::Vector{Atom},         # changed from AbstractArray{Atom,1}
+#   forcefield::Vector{FFParams}, # changed from AbstractArray{FFParams,1}
+#   poses::Matrix{Float32},       # changed from AbstractArray{Float32,2}
+#   etotals::Vector{Float32}      # changed from AbstractArray{Float32,1}
+# ) where {PPWI}
+
 @fastmath function fasten_main(
   ::Val{PPWI},
-  protein::JACC.Array{Atom},
-  ligand::JACC.Array{Atom},
-  forcefield::JACC.Array{FFParams},
-  poses::JACC.Array{Float32,2},
-  etotals::JACC.Array{Float32},
+  protein::AbstractArray{Atom},
+  ligand::AbstractArray{Atom},
+  forcefield::AbstractArray{FFParams},
+  poses::AbstractArray{Float32,2},
+  etotals::AbstractArray{Float32},
 ) where {PPWI}
 
   nposes::Int = size(poses)[2]
   nligand::Int = length(ligand)
   nprotein::Int = length(protein)
   total_work_items::Int = ceil(Int, nposes / PPWI)
+  #total_work_items = 1000
   #print("blocks_size:", blocks_size)
   
 
   function kernel(index)
     # Get index of first TD (Thread Data)
-    ix = (index - 1) * PPWI + 1 #alculates the starting pose index for each work item
+    ix = (index - 1) * PPWI + 1 #calculates the starting pose index for each work item
     ix = ix <= nposes ? ix : nposes - PPWI #make sure we dont go out of bounds (not go past)
 
     etot = MArray{Tuple{PPWI},Float32}(undef)

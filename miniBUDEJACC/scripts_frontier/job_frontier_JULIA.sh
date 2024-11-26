@@ -13,7 +13,7 @@ BUDE_DIR=/ccs/proj/csc594/ahuante/miniBUDE/src/julia/miniBUDE.jl
 BUDE_AMDGPU=$BUDE_DIR/AMDGPU
 BUDE_EXE=$BUDE_DIR/src/AMDGPU.jl
 
-srun -n 1 --gpus=1 julia --project=$BUDE_AMDGPU $BUDE_EXE -p 2 -w 128
+srun -n 1 --gpus=1 julia --project=$BUDE_AMDGPU $BUDE_EXE --deck ../../../data/bm2 -p 1 -w 128
 
 echo "Job completed."
 

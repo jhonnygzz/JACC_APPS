@@ -12,7 +12,7 @@ date
 BUDE_DIR=/ccs/proj/csc594/ahuante/JACC_APPS/miniBUDEJACC
 BUDE_EXE=$BUDE_DIR/src/JACCBUDE.jl
 
-srun -n 1 --gpus=1 julia --project=$BUDE_DIR $BUDE_EXE -p 4
+srun -n 1 --gpus=1 julia --project=$BUDE_DIR $BUDE_EXE -p 2 --deck src/data/bm2
 
 echo "Job completed."
 

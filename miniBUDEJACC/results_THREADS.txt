@@ -3,112 +3,131 @@ AMD EPYC 7702 64-Core Processor (EXPLORER):
 USING AMDCLANG for C/C++.
 
 32 Threads:
-C (OpenMP)
-- Kernel time:    137648.502 ms
-- Average time:   13764.850 ms
-- Interactions/s: 33.992 billion
-- GFLOP/s:        1022.656
-- GFInst/s:       849.809
+C (OpenMP) using --ppwi 128:
+    sum_ms:              137751.311
+    avg_ms:              13775.131
+    min_ms:              13746.992
+    max_ms:              13853.311
+    stddev_ms:           31.871
+    giga_interactions/s: 33.967
+    gflop/s:             1021.893
+    gfinst/s:            849.175
 
-JULIA:
+JULIA using -w 128:
 - Kernel time:    154753.610 ms
 - Average time:   15475.361 ms
 - Interactions/s: 30.235 billion
 - GFLOP/s:        909.620
 - GFInst/s:       755.879
 
-JACC:
-- Kernel time:    200775.604 ms
-- Average time:   20077.560 ms
-- Interactions/s: 23.305 billion
-- GFLOP/s:        728.428
-- GFInst/s:       582.615
+JACC using -p 16:
+- Kernel time:    181336.924 ms
+- Average time:   18133.692 ms
+- Interactions/s: 25.803 billion
+- GFLOP/s:        790.385
+- GFInst/s:       645.070
 
-KernelAbstractions:
-- Kernel time:    218666.524 ms
-- Average time:   21866.652 ms
-- Interactions/s: 21.398 billion
-- GFLOP/s:        668.830
-- GFInst/s:       534.947
+KernelAbstractions using -p 128 -w 4:
+- Kernel time:    204014.073 ms
+- Average time:   20401.407 ms
+- Interactions/s: 22.935 billion
+- GFLOP/s:        689.987
+- GFInst/s:       573.367
 
-Kokkos (OpenMP):
-- Kernel time:    138830.878 ms
-- Average time:   13883.088 ms
-- Interactions/s: 33.703 billion
-- GFLOP/s:        1013.946
-- GFInst/s:       842.572
+Kokkos (OpenMP) using --ppwi 128 --wgsize 1:
+    sum_ms:              138625.521
+    avg_ms:              13862.552
+    min_ms:              13846.489
+    max_ms:              13901.601
+    stddev_ms:           19.033
+    giga_interactions/s: 33.753
+    gflop/s:             1015.448
+    gfinst/s:            843.820
 
 
 64 Threads:
-C (OpenMP)
-- Kernel time:    73065.171 ms
-- Average time:   7306.517 ms
-- Interactions/s: 64.039 billion
-- GFLOP/s:        1926.596
-- GFInst/s:       1600.967
+C (OpenMP) using --ppwi 128
+    sum_ms:              72632.338
+    avg_ms:              7263.234
+    min_ms:              7227.572
+    max_ms:              7295.143
+    stddev_ms:           23.739
+    giga_interactions/s: 64.420
+    gflop/s:             1938.077
+    gfinst/s:            1610.508
 
-JULIA:
+JULIA using -w 128:
 - Kernel time:    95697.404 ms
 - Average time:   9569.740 ms
 - Interactions/s: 48.894 billion
 - GFLOP/s:        1470.960
 - GFInst/s:       1222.342
 
-JACC:
-- Kernel time:    128226.136 ms
-- Average time:   12822.614 ms
-- Interactions/s: 36.490 billion
-- GFLOP/s:        1140.568
-- GFInst/s:       912.255
+JACC using -p 16:
+- Kernel time:    114411.597 ms
+- Average time:   11441.160 ms
+- Interactions/s: 40.896 billion
+- GFLOP/s:        1252.723
+- GFInst/s:       1022.405
 
-KernelAbstractions:
-- Kernel time:    137438.975 ms
-- Average time:   13743.897 ms
-- Interactions/s: 34.044 billion
-- GFLOP/s:        1064.113
-- GFInst/s:       851.105
+KernelAbstractions using -p 128 -w 4:
+- Kernel time:    126019.271 ms
+- Average time:   12601.927 ms
+- Interactions/s: 37.129 billion
+- GFLOP/s:        1117.028
+- GFInst/s:       928.231
 
-Kokkos(OpenMP):
-- Kernel time:    72864.659 ms
-- Average time:   7286.466 ms
-- Interactions/s: 64.215 billion
-- GFLOP/s:        1931.897
-- GFInst/s:       1605.373
+Kokkos(OpenMP) using --ppwi 128 --wgsize 1:
+    sum_ms:              72517.301
+    avg_ms:              7251.730
+    min_ms:              7195.354
+    max_ms:              7293.941
+    stddev_ms:           27.153
+    giga_interactions/s: 64.523
+    gflop/s:             1941.151
+    gfinst/s:            1613.063
 
 
 
 128 Threads:
-C (OpenMP)
-- Kernel time:    45804.783 ms
-- Average time:   4580.478 ms
-- Interactions/s: 102.151 billion
-- GFLOP/s:        3073.195
-- GFInst/s:       2553.771
+C (OpenMP) using --ppwi 128
+    sum_ms:              47080.726
+    avg_ms:              4708.073
+    min_ms:              4692.777
+    max_ms:              4753.305
+    stddev_ms:           15.986
+    giga_interactions/s: 99.382
+    gflop/s:             2989.908
+    gfinst/s:            2484.561
 
-JULIA:
+JULIA using -w 128:
 - Kernel time:    48165.423 ms
 - Average time:   4816.542 ms
 - Interactions/s: 97.144 billion
 - GFLOP/s:        2922.575
 - GFInst/s:       2428.608
 
-JACC:
-- Kernel time:    64894.654 ms
-- Average time:   6489.465 ms
-- Interactions/s: 72.101 billion
-- GFLOP/s:        2253.663
-- GFInst/s:       1802.536
+JACC using -p 16:
+- Kernel time:    57840.866 ms
+- Average time:   5784.087 ms
+- Interactions/s: 80.894 billion
+- GFLOP/s:        2477.938
+- GFInst/s:       2022.358
 
-KERNELABSTRACTIONS:
-- Kernel time:    69708.765 ms
-- Average time:   6970.877 ms
-- Interactions/s: 67.122 billion
-- GFLOP/s:        2098.024
-- GFInst/s:       1678.052
+KERNELABSTRACTIONS using -p 128 -w 4:
+- Kernel time:    63917.091 ms
+- Average time:   6391.709 ms
+- Interactions/s: 73.204 billion
+- GFLOP/s:        2202.338
+- GFInst/s:       1830.104
 
-KOKKOS (OpenMP):
-- Kernel time:    45427.174 ms
-- Average time:   4542.717 ms
-- Interactions/s: 103.000 billion
-- GFLOP/s:        3098.741
-- GFInst/s:       2574.999
+
+KOKKOS (OpenMP) using --ppwi 128 -wgsize 1:
+    sum_ms:              45416.629
+    avg_ms:              4541.663
+    min_ms:              4539.232
+    max_ms:              4544.625
+    stddev_ms:           1.551
+    giga_interactions/s: 103.024
+    gflop/s:             3099.460
+    gfinst/s:            2575.597

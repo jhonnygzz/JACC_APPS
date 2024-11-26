@@ -10,9 +10,9 @@
 date
 
 # project directory with the executable
-cd /ccs/proj/csc594/ahuante/miniBUDE/build
+cd /ccs/proj/csc594/ahuante/miniBUDE/buildKokkosMI250X
 
-srun -n 1 --gpus=1 ./kokkos-bude --deck ../data/bm2 --ppwi 2 --wgsize 32
+srun -n 1 --gpus=1 ./kokkos-bude --deck ../data/bm2 --ppwi 1 --wgsize 32
 
 echo "Job completed."
 

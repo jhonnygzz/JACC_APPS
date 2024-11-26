@@ -1,12 +1,12 @@
-module miniBUDEJACC
+# module miniBUDEJACC
 
-using Printf
+# using Printf
 
-include("BasicBUDEPreferences.jl")
-include("BUDE.jl")
-include("JACCBUDE.jl")
+# include("BasicBUDEPreferences.jl")
+# include("BUDE.jl")
+# include("JACCBUDE.jl")
 
-# Export any functions or types that should be available when using the package
-export run, Params, Deck
+# # Export any functions or types that should be available when using the package
+# export run, Params, Deck
 
-end
+# end
