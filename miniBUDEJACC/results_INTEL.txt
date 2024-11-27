@@ -11,11 +11,11 @@ C (SYCL) using --ppwi 1 --wgsize 32:
     gfinst/s:            4323.235
 
 JACC using -p 2:
-- Kernel time:    45368.016 ms
-- Average time:   4536.802 ms
-- Interactions/s: 103.134 billion
-- GFLOP/s:        3610.434
-- GFInst/s:       2578.357
+- Kernel time:    44480.259 ms
+- Average time:   4448.026 ms
+- Interactions/s: 105.193 billion
+- GFLOP/s:        3682.492
+- GFInst/s:       2629.817
 
 JULIA (OneAPI) using -p 2 -w 16:
 - Kernel time:    34490.915 ms
