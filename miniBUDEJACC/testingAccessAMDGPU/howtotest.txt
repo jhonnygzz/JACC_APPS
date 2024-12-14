@@ -1,2 +1,0 @@
-hipcc -o amdgputest amdgputest.cpp
-./amdgputest

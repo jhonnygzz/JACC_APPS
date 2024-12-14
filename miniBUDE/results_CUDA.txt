@@ -1,0 +1,109 @@
+HUDSON (H100, CUDA):
+
+C (CUDA) using --ppwi 4 --wgsize 128:
+    sum_ms:              17574.110
+    avg_ms:              1757.411
+    min_ms:              1756.379
+    max_ms:              1759.388
+    stddev_ms:           0.810
+    giga_interactions/s: 266.244
+    gflop/s:             8654.768
+    gfinst/s:            6656.095
+
+JACC using @inline and Using -p 2:
+- Kernel time:    16063.804 ms
+- Average time:   1606.380 ms
+- Interactions/s: 291.276 billion
+- GFLOP/s:        10196.726
+- GFInst/s:       7281.896
+
+JULIA (CUDA.jl) using -p 2 and -w 32:
+- Kernel time:    15308.462 ms
+- Average time:   1530.846 ms
+- Interactions/s: 305.648 billion
+- GFLOP/s:        10699.848
+- GFInst/s:       7641.195
+
+Kokkos (CUDA) using --ppwi 2 --wgsize 32:
+    sum_ms:              30648.631
+    avg_ms:              3064.863
+    min_ms:              3063.498
+    max_ms:              3074.725
+    stddev_ms:           3.292
+    giga_interactions/s: 152.666
+    gflop/s:             5344.389
+    gfinst/s:            3816.645
+
+OpenCL (CUDA) using -ppwi 2 --wgsize 128:
+    sum_ms:              10996.066
+    avg_ms:              1099.607
+    min_ms:              1099.039
+    max_ms:              1099.992
+    stddev_ms:           0.276
+    giga_interactions/s: 425.516
+    gflop/s:             14896.074
+    gfinst/s:            10637.890
+
+
+
+
+A100:
+
+
+KA.JL A100: -p 2 -w 128
+- Kernel time:    31812.974 ms
+- Average time:   3181.297 ms
+- Interactions/s: 147.078 billion
+- GFLOP/s:        5148.787
+- GFInst/s:       3676.957
+
+JACC A100: -p 2 and @inline:
+- Kernel time:    30045.077 ms
+- Average time:   3004.508 ms
+- Interactions/s: 155.733 billion
+- GFLOP/s:        5451.749
+- GFInst/s:       3893.315
+
+
+C (CUDA) A100 using --ppwi 4 --wgsize 32:
+    sum_ms:              29775.546
+    avg_ms:              2977.555
+    min_ms:              2977.486
+    max_ms:              2977.624
+    stddev_ms:           0.051
+    giga_interactions/s: 157.142
+    gflop/s:             5108.213
+    gfinst/s:            3928.558
+
+Kokkos (CUDA) A100 using --ppwi 2 -wgsize 32
+    sum_ms:              48410.663
+    avg_ms:              4841.066
+    min_ms:              4839.065
+    max_ms:              4842.803
+    stddev_ms:           1.151
+    giga_interactions/s: 96.652
+    gflop/s:             3383.515
+    gfinst/s:            2416.305
+
+
+JULIA using -p 2 -w 32
+- Kernel time:    23857.841 ms
+- Average time:   2385.784 ms
+- Interactions/s: 196.120 billion
+- GFLOP/s:        6865.592
+- GFInst/s:       4902.998
+
+
+OpenCL (CUDA) using --ppwi 2 --wgsize 64:
+    sum_ms:              20561.445
+    avg_ms:              2056.144
+    min_ms:              2038.663
+    max_ms:              2211.798
+    stddev_ms:           51.885
+    giga_interactions/s: 227.562
+    gflop/s:             7966.279
+    gfinst/s:            5689.043
+
+
+
+
