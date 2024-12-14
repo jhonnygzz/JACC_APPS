@@ -1,0 +1,112 @@
+[
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS -DKOKKOS_DEPENDENCE -DUSE_PPWI=1,2,4,8,16,32,64,128 -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/generated -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/containers/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/containers/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/algorithms/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/algorithms/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/simd/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/simd/src  -DNDEBUG -O3 -march=native -ffast-math -save-temps=obj -emit-llvm -fopenmp=libomp -std=c++17 -o CMakeFiles/bude.dir/src/main.cpp.o -c /home/xa2/Fall2024/miniBUDE/src/main.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/src/main.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++  -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/generated -O3 -DNDEBUG -std=c++17 -o CMakeFiles/impl_git_version.dir/__/generated/Kokkos_Version_Info.cpp.o -c /home/xa2/Fall2024/miniBUDE/buildKokkosOMP/generated/Kokkos_Version_Info.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/generated/Kokkos_Version_Info.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_Abort.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Abort.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Abort.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_CPUDiscovery.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_CPUDiscovery.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_CPUDiscovery.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_Command_Line_Parsing.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Command_Line_Parsing.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Command_Line_Parsing.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_Core.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Core.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Core.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_Error.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Error.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Error.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_ExecPolicy.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_ExecPolicy.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_ExecPolicy.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_HostBarrier.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_HostBarrier.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_HostBarrier.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_HostSpace.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_HostSpace.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_HostSpace.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_HostSpace_deepcopy.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_HostSpace_deepcopy.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_HostSpace_deepcopy.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_HostThreadTeam.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_HostThreadTeam.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_HostThreadTeam.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_MemoryPool.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_MemoryPool.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_MemoryPool.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_Profiling.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Profiling.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Profiling.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_SharedAlloc.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_SharedAlloc.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_SharedAlloc.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_Stacktrace.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Stacktrace.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_Stacktrace.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/impl/Kokkos_hwloc.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_hwloc.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/impl/Kokkos_hwloc.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/OpenMP/Kokkos_OpenMP.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/OpenMP/Kokkos_OpenMP.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/OpenMP/Kokkos_OpenMP.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/OpenMP/Kokkos_OpenMP_Instance.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/OpenMP/Kokkos_OpenMP_Instance.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/OpenMP/Kokkos_OpenMP_Instance.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscore.dir/OpenMP/Kokkos_OpenMP_Task.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/OpenMP/Kokkos_OpenMP_Task.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/OpenMP/Kokkos_OpenMP_Task.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/containers/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++ -DKOKKOS_DEPENDENCE -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/containers/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/containers/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/desul/include -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/core/src/../../tpls/mdspan/include -O3 -DNDEBUG -fopenmp=libomp -std=c++17 -o CMakeFiles/kokkoscontainers.dir/impl/Kokkos_UnorderedMap_impl.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/containers/src/impl/Kokkos_UnorderedMap_impl.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/containers/src/impl/Kokkos_UnorderedMap_impl.cpp"
+},
+{
+  "directory": "/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/simd/src",
+  "command": "/opt/rocm-6.0.2/bin/amdclang++  -I/home/xa2/Fall2024/miniBUDE/src/kokkos -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos/simd/src -I/home/xa2/Fall2024/miniBUDE/kokkosgithub/simd/src -I/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/kokkos -O3 -DNDEBUG -std=c++17 -o CMakeFiles/kokkossimd.dir/Kokkos_SIMD_dummy.cpp.o -c /home/xa2/Fall2024/miniBUDE/kokkosgithub/simd/src/Kokkos_SIMD_dummy.cpp",
+  "file": "/home/xa2/Fall2024/miniBUDE/kokkosgithub/simd/src/Kokkos_SIMD_dummy.cpp"
+}
+]

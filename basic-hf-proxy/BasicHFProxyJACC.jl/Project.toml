@@ -1,0 +1,26 @@
+[deps]
+AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
+Atomix = "a9b6321e-bd34-4604-b9c9-b65b8de01458"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+JACC = "0979c8fe-16a4-4796-9b82-89a9f10403ea"
+MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Preferences = "21216c6a-2e73-6563-6e65-726566657250"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+oneAPI = "8f75cd03-7ff8-4ecb-9b8f-daf728133b1b"
+
+[compat]
+Atomix = "0.1"
+MPI = "0.20"
+MPIPreferences = "0.1.7"
+SpecialFunctions = "2.2"
+julia = "1.6"
+
+[extras]
+CUDA_Runtime_jll = "76a88914-d11a-5bdc-97e0-2f5a05c973a2"
+MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
+MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test", "MPI", "MPIPreferences"]

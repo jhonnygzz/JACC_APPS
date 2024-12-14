@@ -1,0 +1,34 @@
+Determining if the include file experimental/mdspan exists failed with the following output:
+Change Dir: /home/xa2/Fall2024/miniBUDE/buildKokkosOMP/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_82973/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_82973.dir/build.make CMakeFiles/cmTC_82973.dir/build
+gmake[1]: Entering directory '/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_82973.dir/CheckIncludeFile.cxx.o
+/opt/rocm-6.0.2/bin/amdclang++   -std=c++17 -MD -MT CMakeFiles/cmTC_82973.dir/CheckIncludeFile.cxx.o -MF CMakeFiles/cmTC_82973.dir/CheckIncludeFile.cxx.o.d -o CMakeFiles/cmTC_82973.dir/CheckIncludeFile.cxx.o -c /home/xa2/Fall2024/miniBUDE/buildKokkosOMP/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx
+/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx:1:10: fatal error: 'experimental/mdspan' file not found
+#include <experimental/mdspan>
+         ^~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+gmake[1]: *** [CMakeFiles/cmTC_82973.dir/build.make:79: CMakeFiles/cmTC_82973.dir/CheckIncludeFile.cxx.o] Error 1
+gmake[1]: Leaving directory '/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:127: cmTC_82973/fast] Error 2
+
+
+
+Determining if the include file mdspan exists failed with the following output:
+Change Dir: /home/xa2/Fall2024/miniBUDE/buildKokkosOMP/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_bb693/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_bb693.dir/build.make CMakeFiles/cmTC_bb693.dir/build
+gmake[1]: Entering directory '/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_bb693.dir/CheckIncludeFile.cxx.o
+/opt/rocm-6.0.2/bin/amdclang++   -std=c++17 -MD -MT CMakeFiles/cmTC_bb693.dir/CheckIncludeFile.cxx.o -MF CMakeFiles/cmTC_bb693.dir/CheckIncludeFile.cxx.o.d -o CMakeFiles/cmTC_bb693.dir/CheckIncludeFile.cxx.o -c /home/xa2/Fall2024/miniBUDE/buildKokkosOMP/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx
+/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx:1:10: fatal error: 'mdspan' file not found
+#include <mdspan>
+         ^~~~~~~~
+1 error generated.
+gmake[1]: *** [CMakeFiles/cmTC_bb693.dir/build.make:79: CMakeFiles/cmTC_bb693.dir/CheckIncludeFile.cxx.o] Error 1
+gmake[1]: Leaving directory '/home/xa2/Fall2024/miniBUDE/buildKokkosOMP/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:127: cmTC_bb693/fast] Error 2
+
+
+

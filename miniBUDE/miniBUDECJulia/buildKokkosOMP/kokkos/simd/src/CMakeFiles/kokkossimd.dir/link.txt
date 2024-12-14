@@ -1,0 +1,2 @@
+/opt/rocm-6.0.2/llvm/bin/llvm-ar qc libkokkossimd.a CMakeFiles/kokkossimd.dir/Kokkos_SIMD_dummy.cpp.o
+/opt/rocm-6.0.2/llvm/bin/llvm-ranlib libkokkossimd.a

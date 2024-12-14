@@ -1,0 +1,9 @@
+/home/xa2/Fall2024/JACC_APPS/miniBUDE/miniBUDECJulia/build_cudaH100/CMakeFiles/bude.dir
+/home/xa2/Fall2024/JACC_APPS/miniBUDE/miniBUDECJulia/build_cudaH100/CMakeFiles/check_git.dir
+/home/xa2/Fall2024/JACC_APPS/miniBUDE/miniBUDECJulia/build_cudaH100/CMakeFiles/extract_compile_commands.dir
+/home/xa2/Fall2024/JACC_APPS/miniBUDE/miniBUDECJulia/build_cudaH100/CMakeFiles/edit_cache.dir
+/home/xa2/Fall2024/JACC_APPS/miniBUDE/miniBUDECJulia/build_cudaH100/CMakeFiles/rebuild_cache.dir
+/home/xa2/Fall2024/JACC_APPS/miniBUDE/miniBUDECJulia/build_cudaH100/CMakeFiles/list_install_components.dir
+/home/xa2/Fall2024/JACC_APPS/miniBUDE/miniBUDECJulia/build_cudaH100/CMakeFiles/install.dir
+/home/xa2/Fall2024/JACC_APPS/miniBUDE/miniBUDECJulia/build_cudaH100/CMakeFiles/install/local.dir
+/home/xa2/Fall2024/JACC_APPS/miniBUDE/miniBUDECJulia/build_cudaH100/CMakeFiles/install/strip.dir

@@ -1,0 +1,35 @@
+Fortran OpenMP Explorer (ATOMIX)
+128 Threads:  Average time of           10  calls:    7.13360310      seconds, 2e- energy =    16040.856671278667 
+64 Threads:  Average time of           10  calls:    10.5146656      seconds  2e- energy =    16040.856671278663
+32 Threads: Average time of           10  calls:    20.2921047      seconds  2e- energy =    16040.856671278669 
+
+Fortran OpenMP (Offload) CUDA (ATOMIX)
+HUDSON (H100):  Average time of            10  calls:     313.5731      seconds 2e- energy =  16040.85667127866
+milan0 (A100):  Average time of            10  calls:     410.1970      seconds 2e- energy =  16040.85667127866 
+
+Julia Atomix (Explorer)
+128 Threads: Average time of 10 calls: 17.33975 seconds.  2e- energy = 16040.855263421265
+64 Threads: Average time of 10 calls: 33.76615 seconds  2e- energy = 16040.855263421261
+32 Threads: Average time of 10 calls: 55.00006 seconds  2e- energy = 16040.855263421256
+
+Julia Lock (Explorer) (MAYBE DONT INCLUDE THIS ONE BECAUSE OF LOCKS)
+128 Threads: Average time of 10 calls: 28.22634 seconds 2e- energy = 16040.855263421265
+64 Threads: Average time of 10 calls: 53.61465 seconds 2e- energy = 16040.855263421261
+32 Threads:  Average time of 10 calls: 88.59906 seconds 2e- energy = 16040.855263421256
+
+
+
+
+
+JULIA JACC
+
+HUDSON (H100):  2e- energy = 16040.826990958509  Average time of 10 calls: 5.45741 seconds (Using kernel parameters: <<<358614017,384>>>)
+milan0 (A100): 2e- energy = 16040.826990958503   Average time of 10 calls: 7.94088 seconds (Using kernel parameters: <<<358614017,384>>>)
+
+(Explorer) using Atomix
+128 Threads: Average time of 10 calls: 21.03219 seconds  2e- energy = 16040.855263421265
+64 Threads: Average time of 10 calls: 41.23563 seconds   2e- energy = 16040.85526342126
+32 Threads: verage time of 10 calls: 66.19404 seconds    2e- energy = 16040.855263421256
+
+Cousteau (A100):
+Frontier (MI250X)
