@@ -86,6 +86,17 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
 
 
 
+  # println("Getting LLVM IR...")
+  # @code_llvm fasten_main(
+  #   Val(convert(Int, params.ppwi)),
+  #   protein,
+  #   ligand,
+  #   forcefield,
+  #   poses,
+  #   etotals,
+  # )
+
+
   # warmup
   fasten_main(
     Val(convert(Int, params.ppwi)),
@@ -95,6 +106,7 @@ function run(params::Params, deck::Deck) #_::DeviceWithRepr)
     poses,
     etotals,
   )
+
 
   #@code_llvm fasten_main(Val(4), protein, ligand, forcefield, poses, etotals)
 
@@ -210,7 +222,7 @@ end
   nprotein::Int = length(protein)
   total_work_items::Int = ceil(Int, nposes / PPWI)
   #total_work_items = 1000
-  #print("blocks_size:", blocks_size)
+  #print("total_work_items:", total_work_items)
   
 
   function kernel(index)

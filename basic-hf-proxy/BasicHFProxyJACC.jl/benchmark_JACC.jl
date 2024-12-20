@@ -125,14 +125,10 @@ end
 return eri
 end #ssss
 
-function _jacc_kernel!(ijkl, fock, schwarz, ngauss, xpnt, coef, geom, dens, nnnn)
+function _jacc_kernel!(ijkl, fock, schwarz, ngauss, xpnt, coef, geom, dens)
     # The following loop (expanded to four indices, with permutational
     # symmetry) represents the kernel of Hartree-Fock calculations.
     # Integrals are screened to avoid small terms.
-    #global i
-    #i = i + 1
-    #println("i: ", i)
-    #println(typeof(ijkl))
 
 
     # Threads.@threads :static for ijkl in 1:nnnn

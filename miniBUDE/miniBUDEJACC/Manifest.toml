@@ -258,11 +258,9 @@ version = "1.0.0"
 
 [[deps.JACC]]
 deps = ["Atomix", "Preferences"]
-git-tree-sha1 = "6d7835549d926323551a1d5007c6ddc25ce0e46d"
-repo-rev = "main"
-repo-url = "https://github.com/alexishuante/JACC.jl.git"
+git-tree-sha1 = "6cb975717d4ffec21045e4bc73ac3acbcdf25f6b"
 uuid = "0979c8fe-16a4-4796-9b82-89a9f10403ea"
-version = "0.1.0"
+version = "0.1.1"
 weakdeps = ["AMDGPU", "CUDA", "oneAPI"]
 
     [deps.JACC.extensions]
