@@ -121,6 +121,13 @@ end
     z[1], z[2], z[3], z[4], z[5], z[6], z[7], z[8]
 )
 
+
+@inline JcalcElemVolume(x, y, z, i) = calcElemVolume(
+    x[i + 1], x[i + 2], x[i + 3], x[i + 4], x[i + 5], x[i + 6], x[i + 7], x[i + 8],
+    y[i + 1], y[i + 2], y[i + 3], y[i + 4], y[i + 5], y[i + 6], y[i + 7], y[i + 8],
+    z[i + 1], z[i + 2], z[i + 3], z[i + 4], z[i + 5], z[i + 6], z[i + 7], z[i + 8]
+)
+
 function verifyAndWriteFinalOutput(elapsed_time, domain, nx, numRanks)
     # GrindTime1 only takes a single domain into account, and is thus a good way to measure
     # processor speed indepdendent of MPI parallelism.
