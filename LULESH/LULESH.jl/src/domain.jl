@@ -1,23 +1,74 @@
 import JACC
-import MPI
+import Pkg
 
-import CUDA
+# set backend
+include("BasicLuleshPreferences.jl")
+@static if endswith(BasicLuleshPreferences.backend, "cuda")
+    # @TODO Julia Pkg.add will add target = :weakdeps in later versions
+    # Pkg.add(; name = "CUDA", version = "v5.4.3")
+    
+    Pkg.add("CUDA")
+    Pkg.update("CUDA")
+    import CUDA
+    # using CUDA
+    # CUDA.set_runtime_version!(v"12.1.0")  # Replace with a supported CUDA version
 
-# import AMDGPU
+    # pkg = Base.PkgId(Base.UUID("76a88914-d11a-5bdc-97e0-2f5a05c973a2"), "CUDA_Runtime_jll")
+    # Base.compilecache(pkg)
 
-# using JACC
-# import AMDGPU
-# CUDA.device!(0)
-# devices = AMDGPU.devices()
-# AMDGPU.device!(devices[1])  # Set to the first AMD GPU device
+    # CUDA.set_runtime_version!(v"11.2")  # Replace with your installed CUDA version
+    println("Using CUDA as back end")
+    println("CUDA version: ", CUDA.versioninfo())
+
+    device = CUDA.device()
+    println("device: $(CUDA.name(device))")
+
+    devices = CUDA.devices()
+    println("Available devices: ", devices)
+
+    # CUDA.device!(1)
+
+    current_device = CUDA.device()
+    println("Current device: ", current_device)
+
+elseif endswith(BasicLuleshPreferences.backend, "amdgpu")
+    Pkg.add(; name = "AMDGPU", version = "v0.8.11")
+    # Pkg.add(; name = "AMDGPU", version = "v1.0.3") 
+    # Pkg.add("AMDGPU")
+    # Pkg.update("AMDGPU")
+    import AMDGPU
+    # using AMDGPU
+    println("Using AMDGPU as back end")
+    # devices = AMDGPU.devices()
+
+    
+    # device = devices[2]
+    # AMDGPU.device!(device)
+    # # device = AMDGPU.device()
+    # println("device: $device")
+
+    # # Check available devices
+    # devices = AMDGPU.devices()
+    # println("Number of devices: ", length(devices))
+
+    # if !isempty(devices)
+    #     # Print details about the first device
+    #     device = devices[1]
+    #     println("Device 1:")
+    #     println("  Device type: ", typeof(device))
+    #     println("  Device name: ", device)
+    # end
+
+elseif endswith(BasicLuleshPreferences.backend, "threads")
+    using Base.Threads
+    println("Using threads as back end")
+    # Threads.nthreads() = 192
+    # println("Number of threads: ", Threads.nthreads())
+end
+
+
 
 # access elements for comms
-# JACC.set_backend(:threads)
-
-    # Pkg.add("CUDA")
-    # import CUDA
-    # println("Using CUDA as back end")
-
 get_delv_xi(idx::IndexT, dom::AbstractDomain) = dom.d_delv_xi[idx]
 get_delv_eta(idx::IndexT, dom::AbstractDomain) = dom.d_delv_eta[idx]
 get_delv_zeta(idx::IndexT, dom::AbstractDomain) = dom.d_delv_zeta[idx]
@@ -1069,7 +1120,7 @@ end
     pfy[1]    += areaY
     pfy[4:5] .+= areaY
     pfy[8]    += areaY
-    pfy[1]    += areaY
+    pfz[1]    += areaZ
     pfz[4:5] .+= areaZ
     pfz[8]    += areaZ
 
@@ -1100,6 +1151,397 @@ end
     fy_elem[(k-1)*8+1:k*8] = fy
     fz_elem[(k-1)*8+1:k*8] = fz
   end
+end
+
+function JcollectNodal(i, nodelist, sources, src_x)
+
+    src_x_shared = JACC.shared(src_x)
+    # myARRAY = zeros(Float64, 8)
+    @inbounds begin
+
+        i8 = (i - 1) * 8
+        sources[i8 + 1] = src_x[nodelist[i8 + 1] + 1]
+        sources[i8 + 2] = src_x[nodelist[i8 + 2] + 1]
+        sources[i8 + 3] = src_x[nodelist[i8 + 3] + 1]
+        sources[i8 + 4] = src_x[nodelist[i8 + 4] + 1]
+        sources[i8 + 5] = src_x[nodelist[i8 + 5] + 1]
+        sources[i8 + 6] = src_x[nodelist[i8 + 6] + 1]
+        sources[i8 + 7] = src_x[nodelist[i8 + 7] + 1]
+        sources[i8 + 8] = src_x[nodelist[i8 + 8] + 1]
+
+    end
+
+end
+
+function JcalcElemShapeFunctionDerivatives(i, x, y, z, b, determ)
+    @inbounds begin
+
+        i8 = (i - 1) * 8
+        i3 = (i - 1) * 24
+
+
+        x0 = x[i8 + 1]
+        x1 = x[i8 + 2]
+        x2 = x[i8 + 3]
+        x3 = x[i8 + 4]
+        x4 = x[i8 + 5]
+        x5 = x[i8 + 6]
+        x6 = x[i8 + 7]
+        x7 = x[i8 + 8]
+
+        y0 = y[i8 + 1]
+        y1 = y[i8 + 2]
+        y2 = y[i8 + 3]
+        y3 = y[i8 + 4]
+        y4 = y[i8 + 5]
+        y5 = y[i8 + 6]
+        y6 = y[i8 + 7]
+        y7 = y[i8 + 8]
+
+        z0 = z[i8 + 1]
+        z1 = z[i8 + 2]
+        z2 = z[i8 + 3]
+        z3 = z[i8 + 4]
+        z4 = z[i8 + 5]
+        z5 = z[i8 + 6]
+        z6 = z[i8 + 7]
+        z7 = z[i8 + 8]
+
+
+
+        fjxxi = .125 * ( (x6-x0) + (x5-x3) - (x7-x1) - (x4-x2) )
+        fjxet = .125 * ( (x6-x0) - (x5-x3) + (x7-x1) - (x4-x2) )
+        fjxze = .125 * ( (x6-x0) + (x5-x3) + (x7-x1) + (x4-x2) )
+
+        fjyxi = .125 * ( (y6-y0) + (y5-y3) - (y7-y1) - (y4-y2) )
+        fjyet = .125 * ( (y6-y0) - (y5-y3) + (y7-y1) - (y4-y2) )
+        fjyze = .125 * ( (y6-y0) + (y5-y3) + (y7-y1) + (y4-y2) )
+
+        fjzxi = .125 * ( (z6-z0) + (z5-z3) - (z7-z1) - (z4-z2) )
+        fjzet = .125 * ( (z6-z0) - (z5-z3) + (z7-z1) - (z4-z2) )
+        fjzze = .125 * ( (z6-z0) + (z5-z3) + (z7-z1) + (z4-z2) )
+
+        # compute cofactors
+        cjxxi =    (fjyet * fjzze) - (fjzet * fjyze)
+        cjxet =  - (fjyxi * fjzze) + (fjzxi * fjyze)
+        cjxze =    (fjyxi * fjzet) - (fjzxi * fjyet)
+
+        cjyxi =  - (fjxet * fjzze) + (fjzet * fjxze)
+        cjyet =    (fjxxi * fjzze) - (fjzxi * fjxze)
+        cjyze =  - (fjxxi * fjzet) + (fjzxi * fjxet)
+
+        cjzxi =    (fjxet * fjyze) - (fjyet * fjxze)
+        cjzet =  - (fjxxi * fjyze) + (fjyxi * fjxze)
+        cjzze =    (fjxxi * fjyet) - (fjyxi * fjxet)
+
+        # calculate partials :
+        #     this need only be done for l = 0,1,2,3   since , by symmetry ,
+        #     (6,7,4,5) = - (0,1,2,3) .
+        b[1 + i3] =   -  cjxxi  -  cjxet  -  cjxze
+        b[2 + i3] =      cjxxi  -  cjxet  -  cjxze
+        b[3 + i3] =      cjxxi  +  cjxet  -  cjxze
+        b[4 + i3] =   -  cjxxi  +  cjxet  -  cjxze
+        b[5 + i3] = -b[3 + i3]
+        b[6 + i3] = -b[4 + i3]
+        b[7 + i3] = -b[1 + i3]
+        b[8 + i3] = -b[2 + i3]
+
+        b[9 + i3] =   -  cjyxi  -  cjyet  -  cjyze
+        b[10 + i3] =      cjyxi  -  cjyet  -  cjyze
+        b[11 + i3] =      cjyxi  +  cjyet  -  cjyze
+        b[12 + i3] =   -  cjyxi  +  cjyet  -  cjyze
+        b[13 + i3] = -b[11 + i3]
+        b[14 + i3] = -b[12 + i3]
+        b[15 + i3] = -b[9 + i3]
+        b[16 + i3] = -b[10 + i3]
+
+        b[17 + i3] =   -  cjzxi  -  cjzet  -  cjzze
+        b[18 + i3] =      cjzxi  -  cjzet  -  cjzze
+        b[19 + i3] =      cjzxi  +  cjzet  -  cjzze
+        b[20 + i3] =   -  cjzxi  +  cjzet  -  cjzze
+        b[21 + i3] = -b[19 + i3]
+        b[22 + i3] = -b[20 + i3]
+        b[23 + i3] = -b[17 + i3]
+        b[24 + i3] = -b[18 + i3]
+
+
+    end #inbounds
+
+    # calculate jacobian determinant (volume)
+    determ[i] = 8.0 * ( fjxet * cjxet + fjyet * cjyet + fjzet * cjzet)
+end
+
+
+
+function JupdatedcalcElemNodeNormals(i, x, y, z, pf)
+    @inbounds begin
+        # if i > 27000
+        #     return
+        # end
+        i3 = (i - 1) * 8
+        i8 = (i - 1) * 24
+
+
+        # Helper function to update pf values
+        function update_pf!(offset, areaX, areaY, areaZ)
+            pf[offset + i8] += areaX
+            pf[offset + i8 + 8] += areaY
+            pf[offset + i8 + 16] += areaZ
+        end
+        # Evaluate face one: nodes 1, 2, 3, 4
+        areaX, areaY, areaZ = sumElemFaceNormal(
+            x[1+i3], y[1+i3], z[1+i3], x[2+i3], y[2+i3], z[2+i3],
+            x[3+i3], y[3+i3], z[3+i3], x[4+i3], y[4+i3], z[4+i3])
+        
+        for j in 1:4
+            update_pf!(j, areaX, areaY, areaZ)
+        end
+
+        # Evaluate face two: nodes 1, 5, 6, 2
+        areaX, areaY, areaZ = sumElemFaceNormal(
+            x[1+i3], y[1+i3], z[1+i3], x[5+i3], y[5+i3], z[5+i3],
+            x[6+i3], y[6+i3], z[6+i3], x[2+i3], y[2+i3], z[2+i3])
+        
+        update_pf!(1, areaX, areaY, areaZ)
+        update_pf!(2, areaX, areaY, areaZ)
+        update_pf!(5, areaX, areaY, areaZ)
+        update_pf!(6, areaX, areaY, areaZ)
+
+        # Evaluate face three: nodes 2, 6, 7, 3
+        areaX, areaY, areaZ = sumElemFaceNormal(
+            x[2+i3], y[2+i3], z[2+i3], x[6+i3], y[6+i3], z[6+i3],
+            x[7+i3], y[7+i3], z[7+i3], x[3+i3], y[3+i3], z[3+i3])
+        
+        update_pf!(2, areaX, areaY, areaZ)
+        update_pf!(3, areaX, areaY, areaZ)
+        update_pf!(6, areaX, areaY, areaZ)
+        update_pf!(7, areaX, areaY, areaZ)
+
+        # Evaluate face four: nodes 3, 7, 8, 4
+        areaX, areaY, areaZ = sumElemFaceNormal(
+            x[3+i3], y[3+i3], z[3+i3], x[7+i3], y[7+i3], z[7+i3],
+            x[8+i3], y[8+i3], z[8+i3], x[4+i3], y[4+i3], z[4+i3])
+        
+        update_pf!(3, areaX, areaY, areaZ)
+        update_pf!(4, areaX, areaY, areaZ)
+        update_pf!(7, areaX, areaY, areaZ)
+        update_pf!(8, areaX, areaY, areaZ)
+
+        # Evaluate face five: nodes 4, 8, 5, 1
+        areaX, areaY, areaZ = sumElemFaceNormal(
+            x[4+i3], y[4+i3], z[4+i3], x[8+i3], y[8+i3], z[8+i3],
+            x[5+i3], y[5+i3], z[5+i3], x[1+i3], y[1+i3], z[1+i3])
+        
+        update_pf!(1, areaX, areaY, areaZ)
+        update_pf!(4, areaX, areaY, areaZ)
+        update_pf!(5, areaX, areaY, areaZ)
+        update_pf!(8, areaX, areaY, areaZ)
+
+        # Evaluate face six: nodes 5, 8, 7, 6
+        areaX, areaY, areaZ = sumElemFaceNormal(
+            x[5+i3], y[5+i3], z[5+i3], x[8+i3], y[8+i3], z[8+i3],
+            x[7+i3], y[7+i3], z[7+i3], x[6+i3], y[6+i3], z[6+i3])
+        
+        for j in 5:8
+            update_pf!(j, areaX, areaY, areaZ)
+        end
+    end
+end
+
+function JsumElemStressesToNodeForces(i, B, sig_xx, sig_yy, sig_zz,  fx_elem,  fy_elem,  fz_elem, fx, fy, fz)
+
+    @inbounds begin
+
+        i3 = (i - 1) * 8
+        i8 = (i - 1) * 24
+        stress_xx = sig_xx[i]
+        stress_yy = sig_yy[i]
+        stress_zz = sig_zz[i]
+
+        for j in 1:8
+            fx[j + i3] = -stress_xx * B[j + (i-1)*24]  # Assuming B was originally 8x3xnumElem
+            fy[j + i3] = -stress_yy * B[j + 8 + (i-1)*24]
+            fz[j + i3] = -stress_zz * B[j + 16 + (i-1)*24]
+        end
+
+        for j in 1:8
+            fx_elem[i3 + j] = fx[j + i3]
+            fy_elem[i3 + j] = fy[j + i3]
+            fz_elem[i3 + j] = fz[j + i3]
+        end
+    end
+end
+
+
+function Jupdate_domain(i, fx_arr, fy_arr, fz_arr, nodeElemCount, nodeElemStart, nodeElemCornerList, fx_elem, fy_elem, fz_elem)
+
+    @inbounds begin
+        # if i > 29791
+        #     return
+        # end
+        count = nodeElemCount[i]
+        start = nodeElemStart[i]
+        fx = 0.0
+        fy = 0.0
+        fz = 0.0
+        for j in 1:count
+            elem = nodeElemCornerList[start + j]
+            fx += fx_elem[elem]
+            fy += fy_elem[elem]
+            fz += fz_elem[elem]
+        end
+
+        fx_arr[i] += fx
+        fy_arr[i] += fy
+        fz_arr[i] += fz
+
+    end
+
+end
+
+function MultiDintegrateStressForElems(domain::Domain, sigxx, sigyy, sigzz, determ)
+    # Based on FORTRAN implementation down from here
+    # loop over all elements
+    numElem8 = domain.numElem*8
+    numElem3 = domain.numElem*3
+    T = typeof(domain.x)
+    
+    fx_elem = T(undef, numElem8)
+    fy_elem = T(undef, numElem8)
+    fz_elem = T(undef, numElem8)
+    # FIXIT. This has to be device type
+    nodelist = domain.nodelist
+
+    # One Dimensional offsets
+    x_single = Vector{Float64}(undef, numElem8)
+    y_single = Vector{Float64}(undef, numElem8)
+    z_single = Vector{Float64}(undef, numElem8)
+    b_single = Vector{Float64}(undef, numElem3 * 8)
+    pf_single = Vector{Float64}(undef, numElem8 * 3)
+    pfx_single = Vector{Float64}(undef, numElem8)
+    pfy_single = Vector{Float64}(undef, numElem8)
+    pfz_single = Vector{Float64}(undef, numElem8)
+    fx_single = Vector{Float64}(undef, numElem8)
+    fy_single = Vector{Float64}(undef, numElem8)
+    fz_single = Vector{Float64}(undef, numElem8)
+
+    x_domain_d = JACC.Array(domain.x)
+    y_domain_d = JACC.Array(domain.y)
+    z_domain_d = JACC.Array(domain.z)
+    nodelist_d = JACC.Array(nodelist)
+    determ_d = JACC.Array(determ)
+    sig_xx_d = JACC.Array(sigxx)
+    sig_yy_d = JACC.Array(sigyy)
+    sig_zz_d = JACC.Array(sigzz)
+    fx_elem_d = JACC.Array(fx_elem)
+    fy_elem_d = JACC.Array(fy_elem)
+    fz_elem_d = JACC.Array(fz_elem)
+    fx_d = JACC.Array(domain.fx)
+    fy_d = JACC.Array(domain.fy)
+    fz_d = JACC.Array(domain.fz)
+    nodeElemCount_d = JACC.Array(domain.nodeElemCount)
+    nodeElemStart_d = JACC.Array(domain.nodeElemStart)
+    nodeElemCornerList_d = JACC.Array(domain.nodeElemCornerList)
+
+    x_single_d = JACC.Array(x_single)
+    y_single_d = JACC.Array(y_single)
+    z_single_d = JACC.Array(z_single)
+    fx_single_d = JACC.Array(fx_single)
+    fy_single_d = JACC.Array(fy_single)
+    fz_single_d = JACC.Array(fz_single)
+    b_single_d = JACC.Array(b_single)
+    pf_single_d = JACC.Array(pf_single)
+
+    numNode = domain.numNode
+
+    time1 = time()
+    
+    JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, x_single_d, x_domain_d)
+    
+    JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, y_single_d, y_domain_d)
+    
+    JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, z_single_d, z_domain_d)
+    
+    JACC.parallel_for(domain.numElem, JcalcElemShapeFunctionDerivatives, x_single_d, y_single_d, z_single_d, b_single_d, determ_d)
+
+    
+    
+    JACC.parallel_for(domain.numElem, JupdatedcalcElemNodeNormals, x_single_d, y_single_d, z_single_d, pf_single_d)
+    
+    JACC.parallel_for(domain.numElem, JsumElemStressesToNodeForces, pf_single_d, sig_xx_d, sig_yy_d, sig_zz_d, fx_elem_d, fy_elem_d, fz_elem_d, fx_single_d, fy_single_d, fz_single_d)
+    
+    JACC.parallel_for(numNode, Jupdate_domain, fx_d, fy_d, fz_d, nodeElemCount_d, nodeElemStart_d, nodeElemCornerList_d, fx_elem_d, fy_elem_d, fz_elem_d)
+    
+    time2 = time()
+
+    println("Time taken for warmup run integrateStressForElems: ", time2 - time1)
+
+    total_time_collectNodal = 0.0
+    total_time_calcElemShapeFunctionDerivatives = 0.0
+    total_time_updatedcalcElemNodeNormals = 0.0
+    total_time_sumElemStressesToNodeForces = 0.0
+    total_time_update_domain = 0.0
+    num_runs = 10
+
+    for i in 1:num_runs
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, x_single_d, x_domain_d)
+        JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, y_single_d, y_domain_d)
+        JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, z_single_d, z_domain_d)
+        time2 = time()
+        total_time_collectNodal += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JcalcElemShapeFunctionDerivatives, x_single_d, y_single_d, z_single_d, b_single_d, determ_d)
+        time2 = time()
+        total_time_calcElemShapeFunctionDerivatives += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JupdatedcalcElemNodeNormals, x_single_d, y_single_d, z_single_d, pf_single_d)
+        time2 = time()
+        total_time_updatedcalcElemNodeNormals += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JsumElemStressesToNodeForces, pf_single_d, sig_xx_d, sig_yy_d, sig_zz_d, fx_elem_d, fy_elem_d, fz_elem_d, fx_single_d, fy_single_d, fz_single_d)
+        time2 = time()
+        total_time_sumElemStressesToNodeForces += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(numNode, Jupdate_domain, fx_d, fy_d, fz_d, nodeElemCount_d, nodeElemStart_d, nodeElemCornerList_d, fx_elem_d, fy_elem_d, fz_elem_d)
+        time2 = time()
+        total_time_update_domain += (time2 - time1)
+    end
+
+    average_time_collectNodal = total_time_collectNodal / num_runs
+    average_time_calcElemShapeFunctionDerivatives = total_time_calcElemShapeFunctionDerivatives / num_runs
+    average_time_updatedcalcElemNodeNormals = total_time_updatedcalcElemNodeNormals / num_runs
+    average_time_sumElemStressesToNodeForces = total_time_sumElemStressesToNodeForces / num_runs
+    average_time_update_domain = total_time_update_domain / num_runs
+
+    total_average_time = average_time_collectNodal + average_time_calcElemShapeFunctionDerivatives + average_time_updatedcalcElemNodeNormals + average_time_sumElemStressesToNodeForces + average_time_update_domain
+
+    println("Average time taken for JcollectNodal over $num_runs runs: ", average_time_collectNodal)
+    println("Average time taken for JcalcElemShapeFunctionDerivatives over $num_runs runs: ", average_time_calcElemShapeFunctionDerivatives)
+    println("Average time taken for JupdatedcalcElemNodeNormals over $num_runs runs: ", average_time_updatedcalcElemNodeNormals)
+    println("Average time taken for JsumElemStressesToNodeForces over $num_runs runs: ", average_time_sumElemStressesToNodeForces)
+    println("Average time taken for Jupdate_domain over $num_runs runs: ", average_time_update_domain)
+    println("Total average time taken for all functions over $num_runs runs: ", total_average_time)
+
+    copyto!(determ, determ_d)
+    for i in 1:domain.numElem
+        if determ[i] <= 0.0
+            println("Value and index of error: ", determ[i], ": ", i)
+            error("Early Volume Error")
+        end
+    end
+
+    # # Use these with JACC
+    copyto!(domain.fx, fx_d)
+    copyto!(domain.fy, fy_d)
+    copyto!(domain.fz, fz_d)
+
+
+
 end
 
 
@@ -1478,6 +1920,953 @@ end
     return hgfx, hgfy, hgfz
 end
 
+
+function JTcalcElemFBHourglassForce(xd, yd, zd,
+                                  hourgam0, hourgam1,
+                                  hourgam2, hourgam3,
+                                  hourgam4, hourgam5,
+                                  hourgam6, hourgam7,
+                                  coefficient, i, i3)
+    i00 = 1
+    i01 = 2
+    i02 = 3
+    i03 = 4
+    i0 = i3
+    i1 = i3 + 1
+    i2 = i3 + 2
+    i_3 = i3 + 3
+    i4 = i3 + 4
+    i5 = i3 + 5
+    i6 = i3 + 6
+    i7 = i3 + 7
+    @inbounds begin
+        # X component
+        h00 = (
+          hourgam0[i00, i] * xd[i0] + hourgam1[i00, i] * xd[i1] +
+          hourgam2[i00, i] * xd[i2] + hourgam3[i00, i] * xd[i_3] +
+          hourgam4[i00, i] * xd[i4] + hourgam5[i00, i] * xd[i5] +
+          hourgam6[i00, i] * xd[i6] + hourgam7[i00, i] * xd[i7]
+        )
+    
+        h01 = (
+          hourgam0[i01, i] * xd[i0] + hourgam1[i01, i] * xd[i1] +
+          hourgam2[i01, i] * xd[i2] + hourgam3[i01, i] * xd[i_3] +
+          hourgam4[i01, i] * xd[i4] + hourgam5[i01, i] * xd[i5] +
+          hourgam6[i01, i] * xd[i6] + hourgam7[i01, i] * xd[i7]
+        )
+    
+        h02 = (
+          hourgam0[i02, i] * xd[i0] + hourgam1[i02, i] * xd[i1] +
+          hourgam2[i02, i] * xd[i2] + hourgam3[i02, i] * xd[i_3] +
+          hourgam4[i02, i] * xd[i4] + hourgam5[i02, i] * xd[i5] +
+          hourgam6[i02, i] * xd[i6] + hourgam7[i02, i] * xd[i7]
+        )
+    
+        h03 = (
+          hourgam0[i03, i] * xd[i0] + hourgam1[i03, i] * xd[i1] +
+          hourgam2[i03, i] * xd[i2] + hourgam3[i03, i] * xd[i_3] +
+          hourgam4[i03, i] * xd[i4] + hourgam5[i03, i] * xd[i5] +
+          hourgam6[i03, i] * xd[i6] + hourgam7[i03, i] * xd[i7]
+        )
+    
+        hgfx1 = coefficient *
+         (hourgam0[i00, i] * h00 + hourgam0[i01, i] * h01 +
+          hourgam0[i02, i] * h02 + hourgam0[i03, i] * h03)
+
+        # fx_elem[i3] = coefficient *
+        #  (hourgam0[i00, i] * h00 + hourgam0[i01, i] * h01 +
+        #   hourgam0[i02, i] * h02 + hourgam0[i03, i] * h03)
+    
+        hgfx2 = coefficient *
+         (hourgam1[i00, i] * h00 + hourgam1[i01, i] * h01 +
+          hourgam1[i02, i] * h02 + hourgam1[i03, i] * h03)
+    
+        hgfx3 = coefficient *
+         (hourgam2[i00, i] * h00 + hourgam2[i01, i] * h01 +
+          hourgam2[i02, i] * h02 + hourgam2[i03, i] * h03)
+    
+        hgfx4 = coefficient *
+         (hourgam3[i00, i] * h00 + hourgam3[i01, i] * h01 +
+          hourgam3[i02, i] * h02 + hourgam3[i03, i] * h03)
+    
+        hgfx5 = coefficient *
+         (hourgam4[i00, i] * h00 + hourgam4[i01, i] * h01 +
+          hourgam4[i02, i] * h02 + hourgam4[i03, i] * h03)
+    
+        hgfx6 = coefficient *
+         (hourgam5[i00, i] * h00 + hourgam5[i01, i] * h01 +
+          hourgam5[i02, i] * h02 + hourgam5[i03, i] * h03)
+    
+        hgfx7 = coefficient *
+         (hourgam6[i00, i] * h00 + hourgam6[i01, i] * h01 +
+          hourgam6[i02, i] * h02 + hourgam6[i03, i] * h03)
+    
+        hgfx8 = coefficient *
+         (hourgam7[i00, i] * h00 + hourgam7[i01, i] * h01 +
+          hourgam7[i02, i] * h02 + hourgam7[i03, i] * h03)
+    
+        # hgfx = SVector(hgfx1, hgfx2, hgfx3, hgfx4, hgfx5, hgfx6, hgfx7, hgfx8)
+    
+        # Y component
+        h00 = (
+          hourgam0[i00, i] * yd[i0] + hourgam1[i00, i] * yd[i1] +
+          hourgam2[i00, i] * yd[i2] + hourgam3[i00, i] * yd[i_3] +
+          hourgam4[i00, i] * yd[i4] + hourgam5[i00, i] * yd[i5] +
+          hourgam6[i00, i] * yd[i6] + hourgam7[i00, i] * yd[i7]
+        )
+    
+        h01 = (
+          hourgam0[i01, i] * yd[i0] + hourgam1[i01, i] * yd[i1] +
+          hourgam2[i01, i] * yd[i2] + hourgam3[i01, i] * yd[i_3] +
+          hourgam4[i01, i] * yd[i4] + hourgam5[i01, i] * yd[i5] +
+          hourgam6[i01, i] * yd[i6] + hourgam7[i01, i] * yd[i7]
+        )
+    
+        h02 = (
+          hourgam0[i02, i] * yd[i0] + hourgam1[i02, i] * yd[i1] +
+          hourgam2[i02, i] * yd[i2] + hourgam3[i02, i] * yd[i_3] +
+          hourgam4[i02, i] * yd[i4] + hourgam5[i02, i] * yd[i5] +
+          hourgam6[i02, i] * yd[i6] + hourgam7[i02, i] * yd[i7]
+        )
+    
+        h03 = (
+          hourgam0[i03, i] * yd[i0] + hourgam1[i03, i] * yd[i1] +
+          hourgam2[i03, i] * yd[i2] + hourgam3[i03, i] * yd[i_3] +
+          hourgam4[i03, i] * yd[i4] + hourgam5[i03, i] * yd[i5] +
+          hourgam6[i03, i] * yd[i6] + hourgam7[i03, i] * yd[i7]
+        )
+    
+        hgfy1 = coefficient *
+         (hourgam0[i00, i] * h00 + hourgam0[i01, i] * h01 +
+          hourgam0[i02, i] * h02 + hourgam0[i03, i] * h03)
+    
+        hgfy2 = coefficient *
+         (hourgam1[i00, i] * h00 + hourgam1[i01, i] * h01 +
+          hourgam1[i02, i] * h02 + hourgam1[i03, i] * h03)
+    
+        hgfy3 = coefficient *
+         (hourgam2[i00, i] * h00 + hourgam2[i01, i] * h01 +
+          hourgam2[i02, i] * h02 + hourgam2[i03, i] * h03)
+    
+        hgfy4 = coefficient *
+         (hourgam3[i00, i] * h00 + hourgam3[i01, i] * h01 +
+          hourgam3[i02, i] * h02 + hourgam3[i03, i] * h03)
+    
+        hgfy5 = coefficient *
+         (hourgam4[i00, i] * h00 + hourgam4[i01, i] * h01 +
+          hourgam4[i02, i] * h02 + hourgam4[i03, i] * h03)
+    
+        hgfy6 = coefficient *
+         (hourgam5[i00, i] * h00 + hourgam5[i01, i] * h01 +
+          hourgam5[i02, i] * h02 + hourgam5[i03, i] * h03)
+    
+        hgfy7 = coefficient *
+         (hourgam6[i00, i] * h00 + hourgam6[i01, i] * h01 +
+          hourgam6[i02, i] * h02 + hourgam6[i03, i] * h03)
+    
+        hgfy8 = coefficient *
+         (hourgam7[i00, i] * h00 + hourgam7[i01, i] * h01 +
+          hourgam7[i02, i] * h02 + hourgam7[i03, i] * h03)
+    
+        # hgfy = SVector(hgfy1, hgfy2, hgfy3, hgfy4, hgfy5, hgfy6, hgfy7, hgfy8)
+    
+        # Z component
+        h00 = (
+          hourgam0[i00, i] * zd[i0] + hourgam1[i00, i] * zd[i1] +
+          hourgam2[i00, i] * zd[i2] + hourgam3[i00, i] * zd[i_3] +
+          hourgam4[i00, i] * zd[i4] + hourgam5[i00, i] * zd[i5] +
+          hourgam6[i00, i] * zd[i6] + hourgam7[i00, i] * zd[i7]
+        )
+    
+        h01 = (
+          hourgam0[i01, i] * zd[i0] + hourgam1[i01, i] * zd[i1] +
+          hourgam2[i01, i] * zd[i2] + hourgam3[i01, i] * zd[i_3] +
+          hourgam4[i01, i] * zd[i4] + hourgam5[i01, i] * zd[i5] +
+          hourgam6[i01, i] * zd[i6] + hourgam7[i01, i] * zd[i7]
+        )
+    
+        h02 = (
+          hourgam0[i02, i] * zd[i0] + hourgam1[i02, i] * zd[i1] +
+          hourgam2[i02, i] * zd[i2] + hourgam3[i02, i] * zd[i_3] +
+          hourgam4[i02, i] * zd[i4] + hourgam5[i02, i] * zd[i5] +
+          hourgam6[i02, i] * zd[i6] + hourgam7[i02, i] * zd[i7]
+        )
+    
+        h03 = (
+          hourgam0[i03, i] * zd[i0] + hourgam1[i03, i] * zd[i1] +
+          hourgam2[i03, i] * zd[i2] + hourgam3[i03, i] * zd[i_3] +
+          hourgam4[i03, i] * zd[i4] + hourgam5[i03, i] * zd[i5] +
+          hourgam6[i03, i] * zd[i6] + hourgam7[i03, i] * zd[i7]
+        )
+    
+        hgfz1 = coefficient *
+         (hourgam0[i00, i] * h00 + hourgam0[i01, i] * h01 +
+          hourgam0[i02, i] * h02 + hourgam0[i03, i] * h03)
+    
+        hgfz2 = coefficient *
+         (hourgam1[i00, i] * h00 + hourgam1[i01, i] * h01 +
+          hourgam1[i02, i] * h02 + hourgam1[i03, i] * h03)
+    
+        hgfz3 = coefficient *
+         (hourgam2[i00, i] * h00 + hourgam2[i01, i] * h01 +
+          hourgam2[i02, i] * h02 + hourgam2[i03, i] * h03)
+    
+        hgfz4 = coefficient *
+         (hourgam3[i00, i] * h00 + hourgam3[i01, i] * h01 +
+          hourgam3[i02, i] * h02 + hourgam3[i03, i] * h03)
+    
+        hgfz5 = coefficient *
+         (hourgam4[i00, i] * h00 + hourgam4[i01, i] * h01 +
+          hourgam4[i02, i] * h02 + hourgam4[i03, i] * h03)
+    
+        hgfz6 = coefficient *
+         (hourgam5[i00, i] * h00 + hourgam5[i01, i] * h01 +
+          hourgam5[i02, i] * h02 + hourgam5[i03, i] * h03)
+    
+        hgfz7 = coefficient *
+         (hourgam6[i00, i] * h00 + hourgam6[i01, i] * h01 +
+          hourgam6[i02, i] * h02 + hourgam6[i03, i] * h03)
+    
+        hgfz8 = coefficient *
+         (hourgam7[i00, i] * h00 + hourgam7[i01, i] * h01 +
+          hourgam7[i02, i] * h02 + hourgam7[i03, i] * h03)
+
+        # hgfz = SVector(hgfz1, hgfz2, hgfz3, hgfz4, hgfz5, hgfz6, hgfz7, hgfz8) # Change these parts perhaps
+
+    end # inbounds
+
+    # return hgfx, hgfy, hgfz # May have to change this return
+    # fx_elem[i3] = 0.0
+    # fx_elem[i3] = Float64(hgfx1)
+    return hgfx1, hgfx2, hgfx3, hgfx4, hgfx5, hgfx6, hgfx7, hgfx8, hgfy1, hgfy2, hgfy3, hgfy4, hgfy5, hgfy6, hgfy7, hgfy8, hgfz1, hgfz2, hgfz3, hgfz4, hgfz5, hgfz6, hgfz7, hgfz8
+    # return hgfx1, hgfx2
+end
+
+
+function calcFBHourglassForceForElems_A(i, determ, x8n, y8n, z8n, hourgam0, hourgam1, hourgam2, hourgam3, hourgam4, hourgam5, hourgam6, hourgam7, dvdx, dvdy, dvdz, fx_elem, fy_elem, fz_elem, xd1, yd1, zd1, gamma, ss, elemMass, nodelist, xd, yd, zd, hourg)
+
+    @inbounds begin
+
+        if(i > 884736)
+            # println("i: ", i)
+            # looperVariable[16] == 25
+            return
+        end
+        # Section 01
+
+
+        i3 = (8 * (i - 1)) + 1
+        volinv = 1.0/determ[i]
+
+        for i1 in 1:4
+            
+            hourmodx = 
+                x8n[i3]     * gamma[1, i1] + x8n[i3 + 1] * gamma[2, i1] + 
+                x8n[i3 + 2] * gamma[3, i1] + x8n[i3 + 3] * gamma[4, i1] +
+                x8n[i3 + 4] * gamma[5, i1] + x8n[i3 + 5] * gamma[6, i1] +
+                x8n[i3 + 6] * gamma[7, i1] + x8n[i3 + 7] * gamma[8, i1]
+
+            if i1 == 1
+                # looperVariable[16] = hourmodx
+            end
+
+            hourmody =
+                y8n[i3]     * gamma[1, i1] + y8n[i3 + 1] * gamma[2, i1] +
+                y8n[i3 + 2] * gamma[3, i1] + y8n[i3 + 3] * gamma[4, i1] +
+                y8n[i3 + 4] * gamma[5, i1] + y8n[i3 + 5] * gamma[6, i1] +
+                y8n[i3 + 6] * gamma[7, i1] + y8n[i3 + 7] * gamma[8, i1]
+
+            hourmodz =
+                z8n[i3]     * gamma[1, i1] + z8n[i3 + 1] * gamma[2, i1] +
+                z8n[i3 + 2] * gamma[3, i1] + z8n[i3 + 3] * gamma[4, i1] +
+                z8n[i3 + 4] * gamma[5, i1] + z8n[i3 + 5] * gamma[6, i1] +
+                z8n[i3 + 6] * gamma[7, i1] + z8n[i3 + 7] * gamma[8, i1]
+
+            hourgam0[i1, i] = gamma[1, i1] - volinv * (dvdx[i3]     * hourmodx + 
+                                dvdy[i3] * hourmody + dvdz[i3] * hourmodz)
+
+            hourgam1[i1, i] = gamma[2, i1] - volinv * (dvdx[i3 + 1] * hourmodx + 
+                                dvdy[i3 + 1] * hourmody + dvdz[i3 + 1] * hourmodz)
+
+            hourgam2[i1, i] = gamma[3, i1] - volinv * (dvdx[i3 + 2] * hourmodx + 
+                                dvdy[i3 + 2] * hourmody + dvdz[i3 + 2] * hourmodz)
+
+            hourgam3[i1, i] = gamma[4, i1] - volinv * (dvdx[i3 + 3] * hourmodx + 
+                                dvdy[i3 + 3] * hourmody + dvdz[i3 + 3] * hourmodz)
+
+            hourgam4[i1, i] = gamma[5, i1] - volinv * (dvdx[i3 + 4] * hourmodx + 
+                                dvdy[i3 + 4] * hourmody + dvdz[i3 + 4] * hourmodz)
+
+            hourgam5[i1, i] = gamma[6, i1] - volinv * (dvdx[i3 + 5] * hourmodx + 
+                                dvdy[i3 + 5] * hourmody + dvdz[i3 + 5] * hourmodz)
+
+            hourgam6[i1, i] = gamma[7, i1] - volinv * (dvdx[i3 + 6] * hourmodx + 
+                                dvdy[i3 + 6] * hourmody + dvdz[i3 + 6] * hourmodz)
+
+            hourgam7[i1, i] = gamma[8, i1] - volinv * (dvdx[i3 + 7] * hourmodx + 
+                                dvdy[i3 + 7] * hourmody + dvdz[i3 + 7] * hourmodz)
+
+        end
+        # # Section 02
+        # #   compute forces
+        # #   store forces into h arrays (force arrays)
+
+        ss1 = ss[i]
+        mass1 = elemMass[i]
+        volume13 = cbrt(determ[i])
+
+        n0si2 = nodelist[((i - 1) * 8) + 1]
+        n1si2 = nodelist[((i - 1) * 8) + 2]
+        n2si2 = nodelist[((i - 1) * 8) + 3]
+        n3si2 = nodelist[((i - 1) * 8) + 4]
+        n4si2 = nodelist[((i - 1) * 8) + 5]
+        n5si2 = nodelist[((i - 1) * 8) + 6]
+        n6si2 = nodelist[((i - 1) * 8) + 7]
+        n7si2 = nodelist[((i - 1) * 8) + 8]
+
+        xd1[i3] =     xd[n0si2 + 1]
+        xd1[i3 + 1] = xd[n1si2 + 1]
+        xd1[i3 + 2] = xd[n2si2 + 1]
+        xd1[i3 + 3] = xd[n3si2 + 1]
+        xd1[i3 + 4] = xd[n4si2 + 1]
+        xd1[i3 + 5] = xd[n5si2 + 1]
+        xd1[i3 + 6] = xd[n6si2 + 1]
+        xd1[i3 + 7] = xd[n7si2 + 1]
+
+        yd1[i3] =     yd[n0si2 + 1]
+        yd1[i3 + 1] = yd[n1si2 + 1]
+        yd1[i3 + 2] = yd[n2si2 + 1]
+        yd1[i3 + 3] = yd[n3si2 + 1]
+        yd1[i3 + 4] = yd[n4si2 + 1]
+        yd1[i3 + 5] = yd[n5si2 + 1]
+        yd1[i3 + 6] = yd[n6si2 + 1]
+        yd1[i3 + 7] = yd[n7si2 + 1]
+
+        zd1[i3] =     zd[n0si2 + 1]
+        zd1[i3 + 1] = zd[n1si2 + 1]
+        zd1[i3 + 2] = zd[n2si2 + 1]
+        zd1[i3 + 3] = zd[n3si2 + 1]
+        zd1[i3 + 4] = zd[n4si2 + 1]
+        zd1[i3 + 5] = zd[n5si2 + 1]
+        zd1[i3 + 6] = zd[n6si2 + 1]
+        zd1[i3 + 7] = zd[n7si2 + 1]
+
+        coefficient = - hourg * 0.01 * ss1 * mass1 / volume13
+        if i == 1
+            # looperVariable[1] = coefficient
+            # looperVariable[2] = hourg
+            # looperVariable[3] = ss1
+            # looperVariable[4] = mass1
+            # looperVariable[5] = volume13
+            # looperVariable[6] = determ[i]
+        end
+        # # Section 03
+        hgfx1, hgfx2, hgfx3, hgfx4, hgfx5, hgfx6, hgfx7, hgfx8, hgfy1, hgfy2, hgfy3, hgfy4, hgfy5, hgfy6, hgfy7, hgfy8, hgfz1, hgfz2, hgfz3, hgfz4, hgfz5, hgfz6, hgfz7, hgfz8 = JTcalcElemFBHourglassForce(xd1, yd1, zd1, hourgam0, hourgam1, hourgam2, hourgam3, hourgam4, hourgam5, hourgam6, hourgam7, coefficient, i, i3)
+        # JTcalcElemFBHourglassForce(xd1, yd1, zd1, hourgam0, hourgam1, hourgam2, hourgam3, hourgam4, hourgam5, hourgam6, hourgam7, coefficient, i, i3, hgfx, hgfy, hgfz)
+        # hgfx1, hgfx2 = JTcalcElemFBHourglassForce(xd1, yd1, zd1, hourgam0, hourgam1, hourgam2, hourgam3, hourgam4, hourgam5, hourgam6, hourgam7, coefficient, i, i3)
+
+        @inbounds begin
+
+            # if(i3 > 7077881)
+            #     return
+            # end
+            # if(i > 884736)
+            #     return
+            # end
+            # if i == 1
+            #     looperVariable[7] = hgfx1
+            # end
+
+            # fx_elem[i3] = 0
+            # hgfx1 = 0.0
+            # hgfx2 = 0.0
+            # hgfx3 = 0.0
+            # hgfx4 = 0.0
+            # hgfx5 = 0.0
+            # hgfx6 = 0.0
+            # hgfx7 = 0.0
+            # hgfx8 = 0.0
+
+            # fx_elem[i3] =     0.0
+            fx_elem[i3] =     hgfx1
+            fx_elem[i3 + 1] = hgfx2
+            fx_elem[i3 + 2] = hgfx3
+            fx_elem[i3 + 3] = hgfx4
+            fx_elem[i3 + 4] = hgfx5
+            fx_elem[i3 + 5] = hgfx6
+            fx_elem[i3 + 6] = hgfx7
+            fx_elem[i3 + 7] = hgfx8
+
+            fy_elem[i3] =     hgfy1
+            fy_elem[i3 + 1] = hgfy2
+            fy_elem[i3 + 2] = hgfy3
+            fy_elem[i3 + 3] = hgfy4
+            fy_elem[i3 + 4] = hgfy5
+            fy_elem[i3 + 5] = hgfy6
+            fy_elem[i3 + 6] = hgfy7
+            fy_elem[i3 + 7] = hgfy8
+
+            fz_elem[i3] =     hgfz1
+            fz_elem[i3 + 1] = hgfz2
+            fz_elem[i3 + 2] = hgfz3
+            fz_elem[i3 + 3] = hgfz4
+            fz_elem[i3 + 4] = hgfz5
+            fz_elem[i3 + 5] = hgfz6
+            fz_elem[i3 + 6] = hgfz7
+            fz_elem[i3 + 7] = hgfz8
+
+            # fx_elem[i3 + 1] = 0.0
+            # fx_elem[i3 + 2] = 0.0
+            # fx_elem[i3 + 3] = 0.0
+            # fx_elem[i3 + 4] = 0.0
+            # fx_elem[i3 + 5] = 0.0
+            # fx_elem[i3 + 6] = 0.0
+            # fx_elem[i3 + 7] = 0.0
+
+
+
+            # if i == 1
+            #     for loops in 1:8
+            #         hgfx[loops] = fx_elem[loops]
+            #         hgfy[loops] = fy_elem[loops]
+            #         # hgfz[loops] = fz_elem[loops]
+            #     end
+            #     looperVariable[1] = coefficient
+            #     # looperVariable[2] = hourg
+            #     # looperVariable[3] = ss1
+            #     # looperVariable[4] = mass1
+            #     # looperVariable[5] = volume13
+            #     # looperVariable[6] = determ[i]
+
+            # end
+
+        end
+
+    end
+
+end
+
+
+function MultiDcalcFBHourglassForceForElems(domain, determ,
+                                        x8n, y8n, z8n,
+                                        dvdx, dvdy, dvdz,
+                                        hourg             )
+
+    # *************************************************
+    # *
+    # *     FUNCTION: Calculates the Flanagan-Belytschko anti-hourglass
+    # *               force.
+    # *
+    # *************************************************
+
+    numElem = domain.numElem
+    numElem8 = numElem * 8
+    # println("numElem8: ", numElem8)
+
+    fx_elem = Vector{Float64}(undef, numElem8) # Multidimensionals
+    fy_elem = Vector{Float64}(undef, numElem8) 
+    fz_elem = Vector{Float64}(undef, numElem8)
+    # fx_elem = zeros(Float64, numElem8)
+
+
+
+    xd1 = Vector{Float64}(undef, numElem8)
+    yd1 = Vector{Float64}(undef, numElem8)
+    zd1 = Vector{Float64}(undef, numElem8)
+
+    hourgam0 = MVector{4, Float64}(undef) # Multidimensionals
+    hourgam1 = MVector{4, Float64}(undef)
+    hourgam2 = MVector{4, Float64}(undef)
+    hourgam3 = MVector{4, Float64}(undef)
+    hourgam4 = MVector{4, Float64}(undef)
+    hourgam5 = MVector{4, Float64}(undef)
+    hourgam6 = MVector{4, Float64}(undef)
+    hourgam7 = MVector{4, Float64}(undef)
+
+
+    gamma = @SMatrix [
+        1.0   1.0   1.0  -1.0
+        1.0  -1.0  -1.0   1.0
+       -1.0  -1.0   1.0  -1.0
+       -1.0   1.0  -1.0   1.0
+       -1.0  -1.0   1.0   1.0
+       -1.0   1.0  -1.0  -1.0
+        1.0   1.0   1.0   1.0
+        1.0  -1.0  -1.0  -1.0
+    ]
+    
+
+#     gamma = Array{Float64}(undef, 8, 4)
+
+# # Assign values element by element
+#     gamma[1, 1] = 1.0
+#     gamma[1, 2] = 1.0
+#     gamma[1, 3] = 1.0
+#     gamma[1, 4] = -1.0
+
+#     gamma[2, 1] = 1.0
+#     gamma[2, 2] = -1.0
+#     gamma[2, 3] = -1.0
+#     gamma[2, 4] = 1.0
+
+#     gamma[3, 1] = -1.0
+#     gamma[3, 2] = -1.0
+#     gamma[3, 3] = 1.0
+#     gamma[3, 4] = -1.0
+
+#     gamma[4, 1] = -1.0
+#     gamma[4, 2] = 1.0
+#     gamma[4, 3] = -1.0
+#     gamma[4, 4] = 1.0
+
+#     gamma[5, 1] = -1.0
+#     gamma[5, 2] = -1.0
+#     gamma[5, 3] = 1.0
+#     gamma[5, 4] = 1.0
+
+#     gamma[6, 1] = -1.0
+#     gamma[6, 2] = 1.0
+#     gamma[6, 3] = -1.0
+#     gamma[6, 4] = -1.0
+
+#     gamma[7, 1] = 1.0
+#     gamma[7, 2] = 1.0
+#     gamma[7, 3] = 1.0
+#     gamma[7, 4] = 1.0
+
+#     gamma[8, 1] = 1.0
+#     gamma[8, 2] = -1.0
+#     gamma[8, 3] = -1.0
+#     gamma[8, 4] = -1.0
+
+
+    # fx_elem_domainVariables = JACC.Array(zeros(Float64, numElem8, 1000))
+    # fy_elem_domainVariables = JACC.Array(zeros(Float64, numElem8, 1000))
+    # fz_elem_domainVariables = JACC.Array(zeros(Float64, numElem8, 1000))
+    hourgam0_domainVariables = JACC.Array(zeros(Float64, 4, numElem))
+    hourgam1_domainVariables = JACC.Array(zeros(Float64, 4, numElem))
+    hourgam2_domainVariables = JACC.Array(zeros(Float64, 4, numElem))
+    hourgam3_domainVariables = JACC.Array(zeros(Float64, 4, numElem))
+    hourgam4_domainVariables = JACC.Array(zeros(Float64, 4, numElem))
+    hourgam5_domainVariables = JACC.Array(zeros(Float64, 4, numElem))
+    hourgam6_domainVariables = JACC.Array(zeros(Float64, 4, numElem))
+    hourgam7_domainVariables = JACC.Array(zeros(Float64, 4, numElem))
+
+    hgfx = Vector{Float64}(undef, 8)
+    hgfy = Vector{Float64}(undef, 8)
+    hgfz = Vector{Float64}(undef, 8)
+
+    # Initialize an array of 20 indexes with all values being 0
+
+    
+    gamma_d = JACC.Array(gamma)
+    x8n_d = JACC.Array(x8n)
+    y8n_d = JACC.Array(y8n)
+    z8n_d = JACC.Array(z8n)
+    dvdx_d = JACC.Array(dvdx)
+    dvdy_d = JACC.Array(dvdy)
+    dvdz_d = JACC.Array(dvdz)
+    determ_d = JACC.Array(determ)
+    ss_d = JACC.Array(domain.ss)
+    eleMass_d = JACC.Array(domain.elemMass)
+    fx_elem_d = JACC.Array(fx_elem)
+    fy_elem_d = JACC.Array(fy_elem)
+    fz_elem_d = JACC.Array(fz_elem)
+    nodelist_d = JACC.Array(domain.nodelist)
+    xd_d = JACC.Array(domain.xd)
+    yd_d = JACC.Array(domain.yd)
+    zd_d = JACC.Array(domain.zd)
+    xd1_d = JACC.Array(xd1)
+    yd1_d = JACC.Array(yd1)
+    zd1_d = JACC.Array(zd1)
+    nodeElemCount_d = JACC.Array(domain.nodeElemCount)
+    nodeElemStart_d = JACC.Array(domain.nodeElemStart)
+    nodeElemCornerList_d = JACC.Array(domain.nodeElemCornerList)
+    fx_d = JACC.Array(domain.fx)
+    fy_d = JACC.Array(domain.fy)
+    fz_d = JACC.Array(domain.fz)
+    hgfx_d = JACC.Array(hgfx)
+    hgfy_d = JACC.Array(hgfy)
+    hgfz_d = JACC.Array(hgfz)
+    randomTestWords_d = JACC.Array(zeros(Float64, 20))
+
+    # xd1 = JACC.Array()
+
+
+
+
+
+    # *************************************************
+    # compute the hourglass modes
+
+    # From Here 
+
+    # for chunk_start in 1:chunk_size:numElem
+    #     chunk_end = min(chunk_start + chunk_size - 1, numElem)
+
+    #     fx_elem_domainVariables = JACC.Array(zeros(Float64, numElem8, chunk_size))
+    #     fy_elem_domainVariables = JACC.Array(zeros(Float64, numElem8, chunk_size))
+    #     fz_elem_domainVariables = JACC.Array(zeros(Float64, numElem8, chunk_size))
+    #     f[3, 1] = 5
+    #     # JACC.parallel_for(chunk_end, calcFBHourglassForceForElems_A, chunk_start, determ_d, x8n_d, y8n_d, z8n_d, hourgam0_domainVariables, hourgam1_domainVariables, hourgam2_domainVariables, hourgam3_domainVariables, hourgam4_domainVariables, hourgam5_domainVariables, hourgam6_domainVariables, hourgam7_domainVariables, dvdx_d, dvdy_d, dvdz_d)
+
+
+    # end
+    
+    # for i in entireLoop
+
+    #     create array of size 8
+
+    #     call jacc.parallel (i , neededMultiArrayButNormal, pass_array_of_8)
+
+
+    #         array_of_8[1] = neededMultiArrayButNormal[i]
+    #         array_of_8[2] = neededMultiArrayButNormal[i+1]
+    # end
+    # println("Volinv: ", 1.0 / determ[1])
+    # volinv= 1.0/determ[1]
+    # println("NumElem: ", numElem)
+
+    @assert length(fx_elem_d) == numElem8 "Memory allocation failed" 
+    # time1 = time()
+    # JACC.parallel_for(numElem, calcFBHourglassForceForElems_A, determ_d, x8n_d, y8n_d, z8n_d, hourgam0_domainVariables, hourgam1_domainVariables, hourgam2_domainVariables, hourgam3_domainVariables, hourgam4_domainVariables, hourgam5_domainVariables, hourgam6_domainVariables, hourgam7_domainVariables, dvdx_d, dvdy_d, dvdz_d, fx_elem_d, fy_elem_d, fz_elem_d, xd1_d, yd1_d, zd1_d, gamma_d, ss_d, eleMass_d, nodelist_d, xd_d, yd_d, zd_d, hourg)
+    # # JACC.parallel_for(numElem, calcFBHourglassForceForElems_A, determ_d, x8n_d, y8n_d, z8n_d, hourgam0_domainVariables, hourgam1_domainVariables, hourgam2_domainVariables, hourgam3_domainVariables, hourgam4_domainVariables, hourgam5_domainVariables, hourgam6_domainVariables, hourgam7_domainVariables, dvdx_d, dvdy_d, dvdz_d, fx_elem_d, fy_elem_d, fz_elem_d, xd1_d, yd1_d, zd1_d, gamma_d, ss_d, eleMass_d, nodelist_d, xd_d, yd_d, zd_d, hourg, hgfx_d, hgfy_d, randomTestWords_d)
+    # time2 = time()
+    # println("Time taken for the calcFBHourglassForceForElems_A: ", time2 - time1)
+
+    numNode = domain.numNode
+
+    time1 = time()
+    # Perform a warmup run
+    JACC.parallel_for(numElem, calcFBHourglassForceForElems_A, determ_d, x8n_d, y8n_d, z8n_d, hourgam0_domainVariables, hourgam1_domainVariables, hourgam2_domainVariables, hourgam3_domainVariables, hourgam4_domainVariables, hourgam5_domainVariables, hourgam6_domainVariables, hourgam7_domainVariables, dvdx_d, dvdy_d, dvdz_d, fx_elem_d, fy_elem_d, fz_elem_d, xd1_d, yd1_d, zd1_d, gamma_d, ss_d, eleMass_d, nodelist_d, xd_d, yd_d, zd_d, hourg)
+    JACC.parallel_for(numNode, Jupdate_domain, fx_d, fy_d, fz_d, nodeElemCount_d, nodeElemStart_d, nodeElemCornerList_d, fx_elem_d, fy_elem_d, fz_elem_d)
+    # CUDA.synchronize()
+    time2 = time()
+    println("Time taken for the calcFBHourglassForceForElems_A: ", time2 - time1)
+
+
+    
+    # Measure the time for 10 executions and calculate the average time
+    total_time = 0.0
+    num_runs = 10
+    # numElem = 32 * 32 * 32
+    for i in 1:num_runs
+        time1 = time()
+        JACC.parallel_for(numElem, calcFBHourglassForceForElems_A, determ_d, x8n_d, y8n_d, z8n_d, hourgam0_domainVariables, hourgam1_domainVariables, hourgam2_domainVariables, hourgam3_domainVariables, hourgam4_domainVariables, hourgam5_domainVariables, hourgam6_domainVariables, hourgam7_domainVariables, dvdx_d, dvdy_d, dvdz_d, fx_elem_d, fy_elem_d, fz_elem_d, xd1_d, yd1_d, zd1_d, gamma_d, ss_d, eleMass_d, nodelist_d, xd_d, yd_d, zd_d, hourg)
+        JACC.parallel_for(numNode, Jupdate_domain, fx_d, fy_d, fz_d, nodeElemCount_d, nodeElemStart_d, nodeElemCornerList_d, fx_elem_d, fy_elem_d, fz_elem_d)
+
+        time2 = time()
+        total_time += (time2 - time1)
+    end
+
+    average_time = total_time / num_runs
+    println("Average time taken for the calcFBHourglassForceForElems_A over $num_runs runs: ", average_time)
+
+    # hgfx = Array(hgfx_d)
+    # hgfy = Array(hgfy_d)
+    # hgfz = JACC.Array(hgfz_d)
+    randomTestWords = Array(randomTestWords_d)
+    
+    # Checking methods
+    # println("hgfx: ", hgfx)
+    # println("hgfy: ", hgfy)
+
+    # println("randomTestWords: ", randomTestWords)
+    # println("coefficient: ", randomTestWords[1])
+    # println("hourg: ", randomTestWords[2])
+    # println("ss1: ", randomTestWords[3])
+    # println("mass1: ", randomTestWords[4])
+    # println("volume13: ", randomTestWords[5])
+    # println("determ: ", randomTestWords[6])
+
+    # println("hgfx1: ", randomTestWords[7])
+    # println("hourmodx: ", randomTestWords[16])
+    # xd1_d = Array(xd1_d)
+    
+    # for jh in 1:8
+    #     println("xd1_d: ", xd1_d[jh])
+    # end
+
+
+    # println("hgfx: ", hgfx)
+    # println("hgfy: ", hgfy)
+    # println("hgfz: ", hgfz)
+
+    # @inbounds for i2 in 1:numElem
+
+    #     i3=8*(i2-1)+1
+    #     volinv= 1.0/determ[i2]
+
+    #     for i1 in 1:4
+
+    #         hourmodx =
+    #             x8n[i3]   * gamma[1,i1] + x8n[i3+1] * gamma[2,i1] +
+    #             x8n[i3+2] * gamma[3,i1] + x8n[i3+3] * gamma[4,i1] +
+    #             x8n[i3+4] * gamma[5,i1] + x8n[i3+5] * gamma[6,i1] +
+    #             x8n[i3+6] * gamma[7,i1] + x8n[i3+7] * gamma[8,i1]
+
+    #         hourmody =
+    #             y8n[i3]   * gamma[1,i1] + y8n[i3+1] * gamma[2,i1] +
+    #             y8n[i3+2] * gamma[3,i1] + y8n[i3+3] * gamma[4,i1] +
+    #             y8n[i3+4] * gamma[5,i1] + y8n[i3+5] * gamma[6,i1] +
+    #             y8n[i3+6] * gamma[7,i1] + y8n[i3+7] * gamma[8,i1]
+
+    #         hourmodz =
+    #             z8n[i3]   * gamma[1,i1] + z8n[i3+1] * gamma[2,i1] +
+    #             z8n[i3+2] * gamma[3,i1] + z8n[i3+3] * gamma[4,i1] +
+    #             z8n[i3+4] * gamma[5,i1] + z8n[i3+5] * gamma[6,i1] +
+    #             z8n[i3+6] * gamma[7,i1] + z8n[i3+7] * gamma[8,i1]
+
+    #         hourgam0[i1] = gamma[1,i1] -  volinv*(dvdx[i3  ] * hourmodx +
+    #                         dvdy[i3  ] * hourmody + dvdz[i3  ] * hourmodz )
+
+    #         hourgam1[i1] = gamma[2,i1] -  volinv*(dvdx[i3+1] * hourmodx +
+    #                         dvdy[i3+1] * hourmody + dvdz[i3+1] * hourmodz )
+
+    #         hourgam2[i1] = gamma[3,i1] -  volinv*(dvdx[i3+2] * hourmodx +
+    #                         dvdy[i3+2] * hourmody + dvdz[i3+2] * hourmodz )
+
+    #         hourgam3[i1] = gamma[4,i1] -  volinv*(dvdx[i3+3] * hourmodx +
+    #                         dvdy[i3+3] * hourmody + dvdz[i3+3] * hourmodz )
+
+    #         hourgam4[i1] = gamma[5,i1] -  volinv*(dvdx[i3+4] * hourmodx +
+    #                         dvdy[i3+4] * hourmody + dvdz[i3+4] * hourmodz )
+
+    #         hourgam5[i1] = gamma[6,i1] -  volinv*(dvdx[i3+5] * hourmodx +
+    #                         dvdy[i3+5] * hourmody + dvdz[i3+5] * hourmodz )
+
+    #         hourgam6[i1] = gamma[7,i1] -  volinv*(dvdx[i3+6] * hourmodx +
+    #                         dvdy[i3+6] * hourmody + dvdz[i3+6] * hourmodz )
+
+    #         hourgam7[i1] = gamma[8,i1] -  volinv*(dvdx[i3+7] * hourmodx +
+    #                         dvdy[i3+7] * hourmody + dvdz[i3+7] * hourmodz )
+    #     end
+
+
+    #     #   compute forces
+    #     #   store forces into h arrays (force arrays)
+
+    #     # Second Start
+
+    #     ss1 = domain.ss[i2]
+    #     mass1 = domain.elemMass[i2]
+    #     volume13=cbrt(determ[i2])
+
+    #     n0si2 = domain.nodelist[(i2-1)*8+1]
+    #     n1si2 = domain.nodelist[(i2-1)*8+2]
+    #     n2si2 = domain.nodelist[(i2-1)*8+3]
+    #     n3si2 = domain.nodelist[(i2-1)*8+4]
+    #     n4si2 = domain.nodelist[(i2-1)*8+5]
+    #     n5si2 = domain.nodelist[(i2-1)*8+6]
+    #     n6si2 = domain.nodelist[(i2-1)*8+7]
+    #     n7si2 = domain.nodelist[(i2-1)*8+8]
+
+    #     xd1 = SVector(
+    #         domain.xd[n0si2+1], 
+    #         domain.xd[n1si2+1],
+    #         domain.xd[n2si2+1],
+    #         domain.xd[n3si2+1],
+    #         domain.xd[n4si2+1],
+    #         domain.xd[n5si2+1],
+    #         domain.xd[n6si2+1],
+    #         domain.xd[n7si2+1],
+    #     ) # Create these outside of the JACC Loop
+ 
+    #     yd1 = SVector(
+    #         domain.yd[n0si2+1],
+    #         domain.yd[n1si2+1],
+    #         domain.yd[n2si2+1],
+    #         domain.yd[n3si2+1],
+    #         domain.yd[n4si2+1],
+    #         domain.yd[n5si2+1],
+    #         domain.yd[n6si2+1],
+    #         domain.yd[n7si2+1],
+    #     )
+
+    #     zd1 = SVector(
+    #         domain.zd[n0si2+1],
+    #         domain.zd[n1si2+1],
+    #         domain.zd[n2si2+1],
+    #         domain.zd[n3si2+1],
+    #         domain.zd[n4si2+1],
+    #         domain.zd[n5si2+1],
+    #         domain.zd[n6si2+1],
+    #         domain.zd[n7si2+1],
+    #     )
+
+    #     coefficient = - hourg * 0.01 * ss1 * mass1 / volume13
+
+    #     # Next Pause
+
+    #     # Second Start
+
+    #     hgfx, hgfy, hgfz = calcElemFBHourglassForce(xd1,yd1,zd1,
+    #                              hourgam0,hourgam1,hourgam2,hourgam3,
+    #                              hourgam4,hourgam5,hourgam6,hourgam7,
+    #                              coefficient)
+
+    #     @inbounds begin
+    #         fx_elem[i3] = hgfx[1] # Multidimensionals
+    #         fx_elem[i3+1] = hgfx[2]
+    #         fx_elem[i3+2] = hgfx[3]
+    #         fx_elem[i3+3] = hgfx[4]
+    #         fx_elem[i3+4] = hgfx[5]
+    #         fx_elem[i3+5] = hgfx[6]
+    #         fx_elem[i3+6] = hgfx[7]
+    #         fx_elem[i3+7] = hgfx[8]
+
+    #         fy_elem[i3] = hgfy[1]
+    #         fy_elem[i3+1] = hgfy[2]
+    #         fy_elem[i3+2] = hgfy[3]
+    #         fy_elem[i3+3] = hgfy[4]
+    #         fy_elem[i3+4] = hgfy[5]
+    #         fy_elem[i3+5] = hgfy[6]
+    #         fy_elem[i3+6] = hgfy[7]
+    #         fy_elem[i3+7] = hgfy[8]
+
+    #         fz_elem[i3] = hgfz[1]
+    #         fz_elem[i3+1] = hgfz[2]
+    #         fz_elem[i3+2] = hgfz[3]
+    #         fz_elem[i3+3] = hgfz[4]
+    #         fz_elem[i3+4] = hgfz[5]
+    #         fz_elem[i3+5] = hgfz[6]
+    #         fz_elem[i3+6] = hgfz[7]
+    #         fz_elem[i3+7] = hgfz[8]
+    #     end
+
+    #     # #if 0
+    #     #     domain%m_fx(n0si2) = domain%m_fx(n0si2) + hgfx(0)
+    #     #     domain%m_fy(n0si2) = domain%m_fy(n0si2) + hgfy(0)
+    #     #     domain%m_fz(n0si2) = domain%m_fz(n0si2) + hgfz(0)
+
+    #     #     domain%m_fx(n1si2) = domain%m_fx(n1si2) + hgfx(1)
+    #     #     domain%m_fy(n1si2) = domain%m_fy(n1si2) + hgfy(1)
+    #     #     domain%m_fz(n1si2) = domain%m_fz(n1si2) + hgfz(1)
+
+    #     #     domain%m_fx(n2si2) = domain%m_fx(n2si2) + hgfx(2)
+    #     #     domain%m_fy(n2si2) = domain%m_fy(n2si2) + hgfy(2)
+    #     #     domain%m_fz(n2si2) = domain%m_fz(n2si2) + hgfz(2)
+
+    #     #     domain%m_fx(n3si2) = domain%m_fx(n3si2) + hgfx(3)
+    #     #     domain%m_fy(n3si2) = domain%m_fy(n3si2) + hgfy(3)
+    #     #     domain%m_fz(n3si2) = domain%m_fz(n3si2) + hgfz(3)
+
+    #     #     domain%m_fx(n4si2) = domain%m_fx(n4si2) + hgfx(4)
+    #     #     domain%m_fy(n4si2) = domain%m_fy(n4si2) + hgfy(4)
+    #     #     domain%m_fz(n4si2) = domain%m_fz(n4si2) + hgfz(4)
+
+    #     #     domain%m_fx(n5si2) = domain%m_fx(n5si2) + hgfx(5)
+    #     #     domain%m_fy(n5si2) = domain%m_fy(n5si2) + hgfy(5)
+    #     #     domain%m_fz(n5si2) = domain%m_fz(n5si2) + hgfz(5)
+
+    #     #     domain%m_fx(n6si2) = domain%m_fx(n6si2) + hgfx(6)
+    #     #     domain%m_fy(n6si2) = domain%m_fy(n6si2) + hgfy(6)
+    #     #     domain%m_fz(n6si2) = domain%m_fz(n6si2) + hgfz(6)
+
+    #     #     domain%m_fx(n7si2) = domain%m_fx(n7si2) + hgfx(7)
+    #     #     domain%m_fy(n7si2) = domain%m_fy(n7si2) + hgfy(7)
+    #     #     domain%m_fz(n7si2) = domain%m_fz(n7si2) + hgfz(7)
+    #     # #endif
+
+    #     # End Loop here
+    # end
+
+    #Here
+    
+   
+
+    
+
+
+
+    # xd = Array(xd_d)
+    # copyto!(fx_elem, fx_elem_d)
+    # copyto!(fy_elem, fy_elem_d)
+    # copyto!(fz_elem, fz_elem_d)
+    # copyto!(determ, determ_d)
+
+    # for jh in 1:8
+    #     println("fx_elem[", jh, "]: ", fx_elem[jh])
+    #     println("fy_elem[", jh, "]: ", fy_elem[jh])
+    #     println("fz_elem[", jh, "]: ", fz_elem[jh])
+    # end
+
+    # @inbounds for gnode in 1:numNode
+    #     count = domain.nodeElemCount[gnode]
+    #     start = domain.nodeElemStart[gnode]
+    #     fx = 0.0
+    #     fy = 0.0
+    #     fz = 0.0
+    #     @simd for i in 1:count
+    #         elem = domain.nodeElemCornerList[start+i]
+    #         fx += fx_elem[elem]
+    #         fy += fy_elem[elem]
+    #         fz += fz_elem[elem]
+    #     end
+    #     domain.fx[gnode] += fx
+    #     domain.fy[gnode] += fy 
+    #     domain.fz[gnode] += fz
+    # end
+
+    # resultsX = Vector{Float64}(undef, 1)
+    # resultsY = Vector{Float64}(undef, 1)
+    # resultsZ = Vector{Float64}(undef, 1)
+    # results = Vector{Float64}(undef, 3)
+    # results = zeroes(Float64, 3)
+    # resultsX_d = JACC.Array(resultsX)
+    # resultsY_d = JACC.Array(resultsY)
+    # resultsZ_d = JACC.Array(resultsZ)
+
+    numNode = domain.numNode
+
+
+
+    # zeroAdder = JACC.Array(zeros(Float64, numElem8))
+    # println("numNode: ", numNode)
+
+    # fx_elem = Array(fx_elem_d)
+    # fy_elem = Array(fy_elem_d)
+    # fz_elem = Array(fz_elem_d)
+    # @inbounds for gnode in 1:numNode
+    #     count = domain.nodeElemCount[gnode]
+    #     start = domain.nodeElemStart[gnode]
+    #     fx = 0.0
+    #     fy = 0.0
+    #     fz = 0.0
+    #     @simd for i in 1:count
+    #         elem = domain.nodeElemCornerList[start+i]
+    #         fx += fx_elem[elem]
+    #         fy += fy_elem[elem]
+    #         fz += fz_elem[elem]
+    #     end
+    #     # results_d = JACC.parallel_reduce(count, reduce_func, results_d, start, nodeElemCornerList_d, fx_elem_d, fy_elem_d, fz_elem_d)
+        # resultsX_d = JACC.parallel_reduce(count, reduce_func, zeroAdder, start, nodeElemCornerList_d, fx_elem_d)
+        # resultsY_d = JACC.parallel_reduce(count, reduce_func, zeroAdder, start, nodeElemCornerList_d, fy_elem_d)
+        # resultsZ_d = JACC.parallel_reduce(count, reduce_func, zeroAdder, start, nodeElemCornerList_d, fz_elem_d)
+    #     # resultsX = Array(resultsX_d)
+    #     # resultsY = Array(resultsY_d)
+    #     # resultsZ = Array(resultsZ_d)
+    #     domain.fx[gnode] += fx
+    #     domain.fy[gnode] += fy 
+    #     domain.fz[gnode] += fz
+    #     # domain.fx[gnode] += resultsX[1]
+    #     # domain.fy[gnode] += resultsY[1]
+    #     # domain.fz[gnode] += resultsZ[1]
+    # end
+    # JACC.parallel_for(numNode, Jminiupdate_domain, fx_d, fy_d, fz_d, nodeElemCount_d, nodeElemStart_d, nodeElemCornerList_d, fx_elem_d, fy_elem_d, fz_elem_d, resultsX_d, resultsY_d, resultsZ_d)   
+    # JACC.parallel_for(numNode, Jupdate_domain, fx_d, fy_d, fz_d, nodeElemCount_d, nodeElemStart_d, nodeElemCornerList_d, fx_elem_d, fy_elem_d, fz_elem_d)
+    
+    domain.fx = Array(fx_d)
+    domain.fy = Array(fy_d)
+    domain.fz = Array(fz_d)
+
+    # copyto!(domain.fx, fx_d)
+    # copyto!(domain.fy, fy_d)
+    # copyto!(domain.fz, fz_d)
+
+end
+
+
 @inline function calcFBHourglassForceForElems(domain, determ,
                                         x8n, y8n, z8n,
                                         dvdx, dvdy, dvdz,
@@ -1489,11 +2878,7 @@ end
     # *               force.
     # *
     # *************************************************
-    # static called = false
-    # if !called
-    #     println("One time Only")
-    #     called = true
-    # end
+
     numElem = domain.numElem
     numElem8 = numElem * 8
 
@@ -1752,7 +3137,8 @@ function calcHourglassControlForElems(domain::Domain, determ, hgcoef)
     end
 
     if hgcoef > 0.0
-        calcFBHourglassForceForElems(domain,determ,x8n,y8n,z8n,dvdx,dvdy,dvdz,hgcoef)
+        MultiDcalcFBHourglassForceForElems(domain,determ,x8n,y8n,z8n,dvdx,dvdy,dvdz,hgcoef)
+        # calcFBHourglassForceForElems(domain,determ,x8n,y8n,z8n,dvdx,dvdy,dvdz,hgcoef)
     end
 
     return nothing
@@ -1769,11 +3155,12 @@ function calcVolumeForceForElems(domain::Domain)
     determ = VTD(undef, numElem)
 
     # Sum contributions to total stress tensor
-    initStressTermsForElems(domain, sigxx, sigyy, sigzz)
+    # initStressTermsForElems(domain, sigxx, sigyy, sigzz)
 
     #   call elemlib stress integration loop to produce nodal forces from
     #   material stresses.
     integrateStressForElems(domain, sigxx, sigyy, sigzz, determ)
+    # MultiDintegrateStressForElems(domain, sigxx, sigyy, sigzz, determ)
 
     # check for negative element volume and abort if found
     for i in 1:numElem
@@ -1911,6 +3298,46 @@ end
     (fx * gx + fy * gy + fz * gz)
 
   return area
+end
+
+
+@inline function JcalcElemCharacteristicLength( x, y, z, volume, i)
+
+    charLength = 0.0
+
+    a = areaFace(x[i + 1],x[i + 2],x[i + 3],x[i + 4],
+                y[i + 1],y[i + 2],y[i + 3],y[i + 4],
+                z[i + 1],z[i + 2],z[i + 3],z[i + 4])
+    charLength = max(a,charLength)
+
+    a = areaFace(x[i + 5],x[i + 6],x[i + 7],x[i + 8],
+                y[i + 5],y[i + 6],y[i + 7],y[i + 8],
+                z[i + 5],z[i + 6],z[i + 7],z[i + 8])
+    charLength = max(a,charLength)
+
+    a = areaFace(x[i + 1],x[i + 2],x[i + 6],x[i + 5],
+                y[i + 1],y[i + 2],y[i + 6],y[i + 5],
+                z[i + 1],z[i + 2],z[i + 6],z[i + 5])
+    charLength = max(a,charLength)
+
+    a = areaFace(x[i + 2],x[i + 3],x[i + 7],x[i + 6],
+                y[i + 2],y[i + 3],y[i + 7],y[i + 6],
+                z[i + 2],z[i + 3],z[i + 7],z[i + 6])
+    charLength = max(a,charLength)
+
+    a = areaFace(x[i + 3],x[i + 4],x[i + 8],x[i + 7],
+                y[i + 3],y[i + 4],y[i + 8],y[i + 7],
+                z[i + 3],z[i + 4],z[i + 8],z[i + 7])
+    charLength = max(a,charLength)
+
+    a = areaFace(x[i + 4],x[i + 1],x[i + 5],x[i + 8],
+                 y[i + 4],y[i + 1],y[i + 5],y[i + 8],
+                 z[i + 4],z[i + 1],z[i + 5],z[i + 8])
+    charLength = max(a,charLength)
+
+    charLength = 4.0 * volume / sqrt(charLength)
+
+    return charLength
 end
 
 @inline function calcElemCharacteristicLength( x, y, z, volume)
@@ -2118,6 +3545,311 @@ end
     return SVector(s1, s2, s3, s4, s5, s6, s7, s8)
 end
 
+function calcKinematicsForElems_A(i, x_single, y_single, z_single, volo, v, vnew, delv, arealg)
+
+    i8 = 8 * (i - 1)
+    volume = JcalcElemVolume(x_single, y_single, z_single, i8)
+    relativeVolume = volume / volo[i]
+    vnew[i] = relativeVolume
+
+    delv[i] = relativeVolume - v[i]
+    
+    arealg[i] = JcalcElemCharacteristicLength(x_single, y_single, z_single, volume, i8)
+
+end
+
+function calcKinematicsForElems_B()
+
+    i8 = 8 * (i - 1)
+
+    dt2 = 0.5 * dt
+
+    for j in 1:8
+        x_single[i8 + j] = x_single[i8 + j] - dt2 * xd_single[i8 + j]
+        y_single[i8 + j] = y_single[i8 + j] - dt2 * yd_single[i8 + j]
+        z_single[i8 + j] = z_single[i8 + j] - dt2 * zd_single[i8 + j]
+    end
+
+    # for i in 1:8:length(x_single)
+    #     x_single[i] -= dt2 * xd_single[i]
+    #     y_single[i] -= dt2 * yd_single[i]
+    #     z_single[i] -= dt2 * zd_single[i]
+    # end
+end
+
+function calcKinematicsForElems_C(i, dxx, dyy, dzz, D)
+
+    i6 = 6 * (i - 1)
+
+    dxx[i] = D[i6 + 1]
+    dyy[i] = D[i6 + 2]
+    dzz[i] = D[i6 + 3]
+
+end
+
+@inline function JcalcElemVelocityGradient(i, xvel, yvel, zvel, b, detJ, D)
+    @inbounds begin
+
+        i24 = 24 * (i - 1)
+        i8 = 8 * (i - 1) 
+        i6 = 6 * (i - 1)
+
+        if detJ[i] <= 0.0
+            error("Element has zero or negative volume")
+        end
+
+        inv_detJ = 1.0 / detJ[i]
+        
+
+        d1 = inv_detJ * (       b[i24 + 1] * ( xvel[i8 + 1] - xvel[i8+7])
+                            +   b[i24 + 2] * ( xvel[i8 + 2] - xvel[i8+8])
+                            +   b[i24 + 3] * ( xvel[i8 + 3] - xvel[i8+5])
+                            +   b[i24 + 4] * ( xvel[i8 + 4] - xvel[i8+6]) )
+
+        d2 = inv_detJ * (       b[i24 + 9]  * ( yvel[i8 + 1] - yvel[i8+7])
+                            +   b[i24 + 10] * ( yvel[i8 + 2] - yvel[i8+8])
+                            +   b[i24 + 11] * ( yvel[i8 + 3] - yvel[i8+5])
+                            +   b[i24 + 12] * ( yvel[i8 + 4] - yvel[i8+6]) )
+
+        d3 = inv_detJ * (       b[i24 + 17] * ( zvel[i8 + 1] - zvel[i8+7])
+                            +   b[i24 + 18] * ( zvel[i8 + 2] - zvel[i8+8])
+                            +   b[i24 + 19] * ( zvel[i8 + 3] - zvel[i8+5])
+                            +   b[i24 + 20] * ( zvel[i8 + 4] - zvel[i8+6]) )
+
+        dyddx = inv_detJ * (    b[i24 + 1] * ( yvel[i8 + 1] - yvel[i8+7])
+                            +   b[i24 + 2] * ( yvel[i8 + 2] - yvel[i8+8])
+                            +   b[i24 + 3] * ( yvel[i8 + 3] - yvel[i8+5])
+                            +   b[i24 + 4] * ( yvel[i8 + 4] - yvel[i8+6]) )
+
+        dxddy = inv_detJ * (    b[i24 + 9]  * ( xvel[i8 + 1] - xvel[i8+7])
+                            +   b[i24 + 10] * ( xvel[i8 + 2] - xvel[i8+8])
+                            +   b[i24 + 11] * ( xvel[i8 + 3] - xvel[i8+5])
+                            +   b[i24 + 12] * ( xvel[i8 + 4] - xvel[i8+6]) )
+
+        dzddx = inv_detJ * (    b[i24 + 1] * ( zvel[i8 + 1] - zvel[i8+7])
+                            +   b[i24 + 2] * ( zvel[i8 + 2] - zvel[i8+8])
+                            +   b[i24 + 3] * ( zvel[i8 + 3] - zvel[i8+5])
+                            +   b[i24 + 4] * ( zvel[i8 + 4] - zvel[i8+6]) )
+
+        dxddz = inv_detJ * (    b[i24 + 17] * ( xvel[i8 + 1] - xvel[i8+7])
+                            +   b[i24 + 18] * ( xvel[i8 + 2] - xvel[i8+8])
+                            +   b[i24 + 19] * ( xvel[i8 + 3] - xvel[i8+5])
+                            +   b[i24 + 20] * ( xvel[i8 + 4] - xvel[i8+6]) )
+
+        dzddy = inv_detJ * (    b[i24 + 9] *  ( zvel[i8 + 1] - zvel[i8+7])
+                            +   b[i24 + 10] * ( zvel[i8 + 2] - zvel[i8+8])
+                            +   b[i24 + 11] * ( zvel[i8 + 3] - zvel[i8+5])
+                            +   b[i24 + 12] * ( zvel[i8 + 4] - zvel[i8+6]) )
+
+        dyddz = inv_detJ * (    b[i24 + 17] * ( yvel[i8 + 1] - yvel[i8+7])
+                            +   b[i24 + 18] * ( yvel[i8 + 2] - yvel[i8+8])
+                            +   b[i24 + 19] * ( yvel[i8 + 3] - yvel[i8+5])
+                            +   b[i24 + 20] * ( yvel[i8 + 4] - yvel[i8+6]) )
+
+    end #inbounds
+    
+    
+    d6 = 0.5 * ( dxddy + dyddx )
+    d5 = 0.5 * ( dxddz + dzddx )
+    d4 = 0.5 * ( dzddy + dyddz )
+
+    D[i6 + 1] = d1
+    D[i6 + 2] = d2
+    D[i6 + 3] = d3
+    D[i6 + 4] = d4
+    D[i6 + 5] = d5
+    D[i6 + 6] = d6
+
+    #  return SVector(d1, d2, d3, d4, d5, d6)
+end
+
+@inline function calcKinematicsForElems_Aa(i, dt, x_single, y_single, z_single, xd_single, yd_single, zd_single)
+
+    i8 = 8 * (i - 1)
+    dt2 = 0.5 * dt
+    for j in 1:8
+        x_single[i8 + j] -= dt2 * xd_single[i8 + j]
+        y_single[i8 + j] -= dt2 * yd_single[i8 + j]
+        z_single[i8 + j] -= dt2 * zd_single[i8 + j]
+    end
+
+end
+
+function MultiDcalcKinematicsForElems(domain::Domain, numElem, dt)
+
+
+    numElem8 = numElem * 8
+    numElem3 = numElem * 3
+
+    # Initial Arrays
+    x_single = Vector{Float64}(undef, numElem8)
+    y_single = Vector{Float64}(undef, numElem8)
+    z_single = Vector{Float64}(undef, numElem8)
+    xd_single = Vector{Float64}(undef, numElem8)
+    yd_single = Vector{Float64}(undef, numElem8)
+    zd_single = Vector{Float64}(undef, numElem8)
+    b_single = Vector{Float64}(undef, numElem3 * 8)
+    determ = Vector{Float64}(undef, numElem)
+    D = Vector{Float64}(undef, numElem * 6)
+    # Dxx = Vector{Float64}(undef, numElem)
+    # Dyy = Vector{Float64}(undef, numElem)
+    # Dzz = Vector{Float64}(undef, numElem)
+
+    # JACC Arrays
+    nodelist_d = JACC.Array(domain.nodelist)
+    x_d = JACC.Array(domain.x)
+    y_d = JACC.Array(domain.y)
+    z_d = JACC.Array(domain.z)
+    xd_d = JACC.Array(domain.xd)
+    yd_d = JACC.Array(domain.yd)
+    zd_d = JACC.Array(domain.zd)
+    volo_d = JACC.Array(domain.volo)
+    vnew_d = JACC.Array(domain.vnew)
+    determ_d = JACC.Array(determ)
+    v_d = JACC.Array(domain.v)
+    delv_d = JACC.Array(domain.delv)
+    arealg_d = JACC.Array(domain.arealg)
+    dxx_d = JACC.Array(domain.dxx)
+    dyy_d = JACC.Array(domain.dyy)
+    dzz_d = JACC.Array(domain.dzz)
+    # Dxx_d = JACC.Array(Dxx)
+    # Dyy_d = JACC.Array(Dyy)
+    # Dzz_d = JACC.Array(Dzz)
+    
+
+    # JACC Big Arrays
+    x_single_d = JACC.Array(x_single)
+    y_single_d = JACC.Array(y_single)
+    z_single_d = JACC.Array(z_single)
+    xd_single_d = JACC.Array(xd_single)
+    yd_single_d = JACC.Array(yd_single)
+    zd_single_d = JACC.Array(zd_single)
+    b_single_d = JACC.Array(b_single)
+    D_d = JACC.Array(D)
+
+    time1 = time()
+    JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, x_single_d, x_d)
+    JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, y_single_d, y_d)
+    JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, z_single_d, z_d)
+    JACC.parallel_for(domain.numElem, calcKinematicsForElems_A, x_single_d, y_single_d, z_single_d, volo_d, v_d, vnew_d, delv_d, arealg_d)
+    JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, xd_single_d, xd_d)
+    JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, yd_single_d, yd_d)
+    JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, zd_single_d, zd_d)
+    JACC.parallel_for(domain.numElem, calcKinematicsForElems_Aa, dt, x_single_d, y_single_d, z_single_d, xd_single_d, yd_single_d, zd_single_d)
+    JACC.parallel_for(domain.numElem, JcalcElemShapeFunctionDerivatives, x_single_d, y_single_d, z_single_d, b_single_d, determ_d) 
+    JACC.parallel_for(domain.numElem, JcalcElemVelocityGradient, xd_single_d, yd_single_d, zd_single_d, b_single_d, determ_d, D_d)
+    JACC.parallel_for(domain.numElem, calcKinematicsForElems_C, dxx_d, dyy_d, dzz_d, D_d)
+    time2 = time()
+    println("Time Taken for MultiDCalcKinematicsForElems: ", time2 - time1)
+    
+    
+    total_time_collectNodal_x = 0.0
+    total_time_collectNodal_y = 0.0
+    total_time_collectNodal_z = 0.0
+    total_time_calcKinematicsForElems_A = 0.0
+    total_time_collectNodal_xd = 0.0
+    total_time_collectNodal_yd = 0.0
+    total_time_collectNodal_zd = 0.0
+    total_time_calcKinematicsForElems_Aa = 0.0
+    total_time_calcElemShapeFunctionDerivatives = 0.0
+    total_time_calcElemVelocityGradient = 0.0
+    total_time_calcKinematicsForElems_C = 0.0
+
+    num_runs = 10
+
+    for i in 1:num_runs
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, x_single_d, x_d)
+        time2 = time()
+        total_time_collectNodal_x += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, y_single_d, y_d)
+        time2 = time()
+        total_time_collectNodal_y += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, z_single_d, z_d)
+        time2 = time()
+        total_time_collectNodal_z += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, calcKinematicsForElems_A, x_single_d, y_single_d, z_single_d, volo_d, v_d, vnew_d, delv_d, arealg_d)
+        time2 = time()
+        total_time_calcKinematicsForElems_A += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, xd_single_d, xd_d)
+        time2 = time()
+        total_time_collectNodal_xd += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, yd_single_d, yd_d)
+        time2 = time()
+        total_time_collectNodal_yd += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JcollectNodal, nodelist_d, zd_single_d, zd_d)
+        time2 = time()
+        total_time_collectNodal_zd += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, calcKinematicsForElems_Aa, dt, x_single_d, y_single_d, z_single_d, xd_single_d, yd_single_d, zd_single_d)
+        time2 = time()
+        total_time_calcKinematicsForElems_Aa += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JcalcElemShapeFunctionDerivatives, x_single_d, y_single_d, z_single_d, b_single_d, determ_d)
+        time2 = time()
+        total_time_calcElemShapeFunctionDerivatives += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, JcalcElemVelocityGradient, xd_single_d, yd_single_d, zd_single_d, b_single_d, determ_d, D_d)
+        time2 = time()
+        total_time_calcElemVelocityGradient += (time2 - time1)
+
+        time1 = time()
+        JACC.parallel_for(domain.numElem, calcKinematicsForElems_C, dxx_d, dyy_d, dzz_d, D_d)
+        time2 = time()
+        total_time_calcKinematicsForElems_C += (time2 - time1)
+    end
+
+    average_time_collectNodal_x = total_time_collectNodal_x / num_runs
+    average_time_collectNodal_y = total_time_collectNodal_y / num_runs
+    average_time_collectNodal_z = total_time_collectNodal_z / num_runs
+    average_time_calcKinematicsForElems_A = total_time_calcKinematicsForElems_A / num_runs
+    average_time_collectNodal_xd = total_time_collectNodal_xd / num_runs
+    average_time_collectNodal_yd = total_time_collectNodal_yd / num_runs
+    average_time_collectNodal_zd = total_time_collectNodal_zd / num_runs
+    average_time_calcKinematicsForElems_Aa = total_time_calcKinematicsForElems_Aa / num_runs
+    average_time_calcElemShapeFunctionDerivatives = total_time_calcElemShapeFunctionDerivatives / num_runs
+    average_time_calcElemVelocityGradient = total_time_calcElemVelocityGradient / num_runs
+    average_time_calcKinematicsForElems_C = total_time_calcKinematicsForElems_C / num_runs
+
+    total_average_time = average_time_collectNodal_x + average_time_collectNodal_y + average_time_collectNodal_z + average_time_calcKinematicsForElems_A + average_time_collectNodal_xd + average_time_collectNodal_yd + average_time_collectNodal_zd + average_time_calcKinematicsForElems_Aa + average_time_calcElemShapeFunctionDerivatives + average_time_calcElemVelocityGradient + average_time_calcKinematicsForElems_C
+
+    println("Average time taken for JcollectNodal (x) over $num_runs runs: ", average_time_collectNodal_x)
+    println("Average time taken for JcollectNodal (y) over $num_runs runs: ", average_time_collectNodal_y)
+    println("Average time taken for JcollectNodal (z) over $num_runs runs: ", average_time_collectNodal_z)
+    println("Average time taken for calcKinematicsForElems_A over $num_runs runs: ", average_time_calcKinematicsForElems_A)
+    println("Average time taken for JcollectNodal (xd) over $num_runs runs: ", average_time_collectNodal_xd)
+    println("Average time taken for JcollectNodal (yd) over $num_runs runs: ", average_time_collectNodal_yd)
+    println("Average time taken for JcollectNodal (zd) over $num_runs runs: ", average_time_collectNodal_zd)
+    println("Average time taken for calcKinematicsForElems_Aa over $num_runs runs: ", average_time_calcKinematicsForElems_Aa)
+    println("Average time taken for JcalcElemShapeFunctionDerivatives over $num_runs runs: ", average_time_calcElemShapeFunctionDerivatives)
+    println("Average time taken for JcalcElemVelocityGradient over $num_runs runs: ", average_time_calcElemVelocityGradient)
+    println("Average time taken for calcKinematicsForElems_C over $num_runs runs: ", average_time_calcKinematicsForElems_C)
+    println("Total average time taken for all functions over $num_runs runs: ", total_average_time)
+    
+    copyto!(domain.dxx, dxx_d)
+    copyto!(domain.dyy, dyy_d)
+    copyto!(domain.dzz, dzz_d)
+    copyto!(domain.vnew, vnew_d)
+    copyto!(domain.delv, delv_d)
+    copyto!(domain.arealg, arealg_d)
+
+end
+
 
 function calcKinematicsForElems(domain::Domain, numElem, dt)
 
@@ -2172,7 +3904,8 @@ end
 function calcLagrangeElements(domain, delt)
     numElem = domain.numElem
     if numElem > 0
-        calcKinematicsForElems(domain, numElem, delt)
+        # calcKinematicsForElems(domain, numElem, delt)
+        MultiDcalcKinematicsForElems(domain, numElem, delt)
 
         # element loop to do some stuff not included in the elemlib function.
 
@@ -2193,6 +3926,238 @@ function calcLagrangeElements(domain, delt)
             end
         end
     end
+end
+
+function MultiDcalcMonotonicQGradientsForElems(i, nodelist, x_single, y_single, z_single, x, y, z, xv, yv, zv, xd, yd, zd, volo, vnew, delx_zeta, delv_zeta, delx_xi, delv_xi, delx_eta, delv_eta, ptiny, zero_array)  
+
+    # zero_shared = JACC.experimental.shared(zero_array)
+    # x_shared = JACC.experimental.shared(x)
+    k = (i - 1) * 8
+
+
+
+    n0 = nodelist[k + 1]
+    n1 = nodelist[k + 2]
+    n2 = nodelist[k + 3]
+    n3 = nodelist[k + 4]
+    n4 = nodelist[k + 5]
+    n5 = nodelist[k + 6]
+    n6 = nodelist[k + 7]
+    n7 = nodelist[k + 8]
+
+    x_single[k + 1] = x[n0 + 1]
+    x_single[k + 2] = x[n1 + 1]
+    x_single[k + 3] = x[n2 + 1]
+    x_single[k + 4] = x[n3 + 1]
+    x_single[k + 5] = x[n4 + 1]
+    x_single[k + 6] = x[n5 + 1]
+    x_single[k + 7] = x[n6 + 1]
+    x_single[k + 8] = x[n7 + 1]
+
+    # x_single0 = x[n0 + 1]
+    # x_single1 = x[n1 + 1]
+    # x_single2 = x[n2 + 1]
+    # x_single3 = x[n3 + 1]
+    # x_single4 = x[n4 + 1]
+    # x_single5 = x[n5 + 1]
+    # x_single6 = x[n6 + 1]
+    # x_single7 = x[n7 + 1]
+
+    y_single[k + 1] = y[n0 + 1]
+    y_single[k + 2] = y[n1 + 1]
+    y_single[k + 3] = y[n2 + 1]
+    y_single[k + 4] = y[n3 + 1]
+    y_single[k + 5] = y[n4 + 1]
+    y_single[k + 6] = y[n5 + 1]
+    y_single[k + 7] = y[n6 + 1]
+    y_single[k + 8] = y[n7 + 1]
+
+    # y_single0 = y[n0 + 1]
+    # y_single1 = y[n1 + 1]
+    # y_single2 = y[n2 + 1]
+    # y_single3 = y[n3 + 1]
+    # y_single4 = y[n4 + 1]
+    # y_single5 = y[n5 + 1]
+    # y_single6 = y[n6 + 1]
+    # y_single7 = y[n7 + 1]
+
+    z_single[k + 1] = z[n0 + 1]
+    z_single[k + 2] = z[n1 + 1]
+    z_single[k + 3] = z[n2 + 1]
+    z_single[k + 4] = z[n3 + 1]
+    z_single[k + 5] = z[n4 + 1]
+    z_single[k + 6] = z[n5 + 1]
+    z_single[k + 7] = z[n6 + 1]
+    z_single[k + 8] = z[n7 + 1]
+
+    # z_single0 = z[n0 + 1]
+    # z_single1 = z[n1 + 1]
+    # z_single2 = z[n2 + 1]
+    # z_single3 = z[n3 + 1]
+    # z_single4 = z[n4 + 1]
+    # z_single5 = z[n5 + 1]
+    # z_single6 = z[n6 + 1]
+    # z_single7 = z[n7 + 1]
+
+    xv[k + 1] = xd[n0 + 1]
+    xv[k + 2] = xd[n1 + 1]
+    xv[k + 3] = xd[n2 + 1]
+    xv[k + 4] = xd[n3 + 1]
+    xv[k + 5] = xd[n4 + 1]
+    xv[k + 6] = xd[n5 + 1]
+    xv[k + 7] = xd[n6 + 1]
+    xv[k + 8] = xd[n7 + 1]
+
+    # xv0 = xd[n0 + 1]
+    # xv1 = xd[n1 + 1]
+    # xv2 = xd[n2 + 1]
+    # xv3 = xd[n3 + 1]
+    # xv4 = xd[n4 + 1]
+    # xv5 = xd[n5 + 1]
+    # xv6 = xd[n6 + 1]
+    # xv7 = xd[n7 + 1]
+
+    yv[k + 1] = yd[n0 + 1]
+    yv[k + 2] = yd[n1 + 1]
+    yv[k + 3] = yd[n2 + 1]
+    yv[k + 4] = yd[n3 + 1]
+    yv[k + 5] = yd[n4 + 1]
+    yv[k + 6] = yd[n5 + 1]
+    yv[k + 7] = yd[n6 + 1]
+    yv[k + 8] = yd[n7 + 1]
+
+    # yv0 = yd[n0 + 1]
+    # yv1 = yd[n1 + 1]
+    # yv2 = yd[n2 + 1]
+    # yv3 = yd[n3 + 1]
+    # yv4 = yd[n4 + 1]
+    # yv5 = yd[n5 + 1]
+    # yv6 = yd[n6 + 1]
+    # yv7 = yd[n7 + 1]
+
+    zv[k + 1] = zd[n0 + 1]
+    zv[k + 2] = zd[n1 + 1]
+    zv[k + 3] = zd[n2 + 1]
+    zv[k + 4] = zd[n3 + 1]
+    zv[k + 5] = zd[n4 + 1]
+    zv[k + 6] = zd[n5 + 1]
+    zv[k + 7] = zd[n6 + 1]
+    zv[k + 8] = zd[n7 + 1]
+
+    # zv0 = zd[n0 + 1]
+    # zv1 = zd[n1 + 1]
+    # zv2 = zd[n2 + 1]
+    # zv3 = zd[n3 + 1]
+    # zv4 = zd[n4 + 1]
+    # zv5 = zd[n5 + 1]
+    # zv6 = zd[n6 + 1]
+    # zv7 = zd[n7 + 1]
+
+    vol = volo[i] * vnew[i]
+    norm = 1.0 / (vol + ptiny)
+
+    # Part 02 Begin
+
+
+
+    dxj = -0.25 * (sum4(x_single[k + 1], x_single[k + 2], x_single[k + 6], x_single[k + 5]) - sum4(x_single[k + 4], x_single[k + 3], x_single[k + 7], x_single[k + 8]))
+    dyj = -0.25 * (sum4(y_single[k + 1], y_single[k + 2], y_single[k + 6], y_single[k + 5]) - sum4(y_single[k + 4], y_single[k + 3], y_single[k + 7], y_single[k + 8]))
+    dzj = -0.25 * (sum4(z_single[k + 1], z_single[k + 2], z_single[k + 6], z_single[k + 5]) - sum4(z_single[k + 4], z_single[k + 3], z_single[k + 7], z_single[k + 8]))
+
+    # dxj = -0.25 * (sum4(x_single0, x_single1, x_single5, x_single4) - sum4(x_single3, x_single2, x_single6, x_single7))
+    # dyj = -0.25 * (sum4(y_single0, y_single1, y_single5, y_single4) - sum4(y_single3, y_single2, y_single6, y_single7))
+    # dzj = -0.25 * (sum4(z_single0, z_single1, z_single5, z_single4) - sum4(z_single3, z_single2, z_single6, z_single7))
+
+    dxi = 0.25 * (sum4(x_single[k + 2], x_single[k + 3], x_single[k + 7], x_single[k + 6]) - sum4(x_single[k + 1], x_single[k + 4], x_single[k + 8], x_single[k + 5]))
+    dyi = 0.25 * (sum4(y_single[k + 2], y_single[k + 3], y_single[k + 7], y_single[k + 6]) - sum4(y_single[k + 1], y_single[k + 4], y_single[k + 8], y_single[k + 5]))
+    dzi = 0.25 * (sum4(z_single[k + 2], z_single[k + 3], z_single[k + 7], z_single[k + 6]) - sum4(z_single[k + 1], z_single[k + 4], z_single[k + 8], z_single[k + 5]))
+
+    # dxi = 0.25 * (sum4(x_single1, x_single2, x_single6, x_single5) - sum4(x_single0, x_single3, x_single7, x_single4))
+    # dyi = 0.25 * (sum4(y_single1, y_single2, y_single6, y_single5) - sum4(y_single0, y_single3, y_single7, y_single4))
+    # dzi = 0.25 * (sum4(z_single1, z_single2, z_single6, z_single5) - sum4(z_single0, z_single3, z_single7, z_single4))
+
+    dxk = 0.25 * (sum4(x_single[k + 5], x_single[k + 6], x_single[k + 7], x_single[k + 8]) - sum4(x_single[k + 1], x_single[k + 2], x_single[k + 3], x_single[k + 4]))
+    dyk = 0.25 * (sum4(y_single[k + 5], y_single[k + 6], y_single[k + 7], y_single[k + 8]) - sum4(y_single[k + 1], y_single[k + 2], y_single[k + 3], y_single[k + 4]))
+    dzk = 0.25 * (sum4(z_single[k + 5], z_single[k + 6], z_single[k + 7], z_single[k + 8]) - sum4(z_single[k + 1], z_single[k + 2], z_single[k + 3], z_single[k + 4]))
+
+    # dxk = 0.25 * (sum4(x_single4, x_single5, x_single6, x_single7) - sum4(x_single0, x_single1, x_single2, x_single3))
+    # dyk = 0.25 * (sum4(y_single4, y_single5, y_single6, y_single7) - sum4(y_single0, y_single1, y_single2, y_single3))
+    # dzk = 0.25 * (sum4(z_single4, z_single5, z_single6, z_single7) - sum4(z_single0, z_single1, z_single2, z_single3))
+
+
+
+    ax = dyi * dzj - dzi * dyj
+    ay = dzi * dxj - dxi * dzj
+    az = dxi * dyj - dyi * dxj
+    # HERE 01
+    delx_zeta[i] = vol / sqrt(ax * ax + ay * ay + az * az + ptiny)
+
+    ax = ax * norm
+    ay = ay * norm
+    az = az * norm
+
+    dxv = 0.25 * (sum4(xv[k + 5], xv[k + 6], xv[k + 7], xv[k + 8]) - sum4(xv[k + 1], xv[k + 2], xv[k + 3], xv[k + 4]))
+    dyv = 0.25 * (sum4(yv[k + 5], yv[k + 6], yv[k + 7], yv[k + 8]) - sum4(yv[k + 1], yv[k + 2], yv[k + 3], yv[k + 4]))
+    dzv = 0.25 * (sum4(zv[k + 5], zv[k + 6], zv[k + 7], zv[k + 8]) - sum4(zv[k + 1], zv[k + 2], zv[k + 3], zv[k + 4]))
+
+    # dxv = 0.25 * (sum4(xv4, xv5, xv6, xv7) - sum4(xv0, xv1, xv2, xv3))
+    # dyv = 0.25 * (sum4(yv4, yv5, yv6, yv7) - sum4(yv0, yv1, yv2, yv3))
+    # dzv = 0.25 * (sum4(zv4, zv5, zv6, zv7) - sum4(zv0, zv1, zv2, zv3))
+
+    delv_zeta[i] = ax * dxv + ay * dyv + az * dzv 
+
+    # Part 02 End
+    
+    # Part 03 Begin
+
+    ax = dyj * dzk - dzj * dyk
+    ay = dzj * dxk - dxj * dzk
+    az = dxj * dyk - dyj * dxk
+
+    delx_xi[i] = vol / sqrt(ax * ax + ay * ay + az * az + ptiny)
+
+    ax = ax * norm
+    ay = ay * norm
+    az = az * norm
+    # HERE 02
+
+    dxv = 0.25 * (sum4(xv[k + 2], xv[k + 3], xv[k + 7], xv[k + 6]) - sum4(xv[k + 1], xv[k + 4], xv[k + 8], xv[k + 5]))
+    dyv = 0.25 * (sum4(yv[k + 2], yv[k + 3], yv[k + 7], yv[k + 6]) - sum4(yv[k + 1], yv[k + 4], yv[k + 8], yv[k + 5]))
+    dzv = 0.25 * (sum4(zv[k + 2], zv[k + 3], zv[k + 7], zv[k + 6]) - sum4(zv[k + 1], zv[k + 4], zv[k + 8], zv[k + 5]))
+
+    # dxv = 0.25 * (sum4(xv1, xv2, xv6, xv5) - sum4(xv0, xv3, xv7, xv4))
+    # dyv = 0.25 * (sum4(yv1, yv2, yv6, yv5) - sum4(yv0, yv3, yv7, yv4))
+    # dzv = 0.25 * (sum4(zv1, zv2, zv6, zv5) - sum4(zv0, zv3, zv7, zv4))
+
+    delv_xi[i] = ax * dxv + ay * dyv + az * dzv
+
+    ax = dyk * dzi - dzk * dyi ;
+    ay = dzk * dxi - dxk * dzi ; 
+    az = dxk * dyi - dyk * dxi ;
+
+    delx_eta[i] = vol / sqrt(ax * ax + ay * ay + az * az + ptiny)
+
+    ax = ax * norm
+    ay = ay * norm
+    az = az * norm
+
+    dxv = -0.25 * (sum4(xv[k + 1], xv[k + 2], xv[k + 6], xv[k + 5]) - sum4(xv[k + 4], xv[k + 3], xv[k + 7], xv[k + 8]))
+    dyv = -0.25 * (sum4(yv[k + 1], yv[k + 2], yv[k + 6], yv[k + 5]) - sum4(yv[k + 4], yv[k + 3], yv[k + 7], yv[k + 8]))
+    dzv = -0.25 * (sum4(zv[k + 1], zv[k + 2], zv[k + 6], zv[k + 5]) - sum4(zv[k + 4], zv[k + 3], zv[k + 7], zv[k + 8]))
+
+    # dxv = -0.25 * (sum4(xv0, xv1, xv5, xv4) - sum4(xv3, xv2, xv6, xv7))
+    # dyv = -0.25 * (sum4(yv0, yv1, yv5, yv4) - sum4(yv3, yv2, yv6, yv7))
+    # dzv = -0.25 * (sum4(zv0, zv1, zv5, zv4) - sum4(zv3, zv2, zv6, zv7))
+
+    delv_eta[i] = ax * dxv + ay * dyv + az * dzv
+
+    # Part 03 End
+
+
+end
+
+@inline function sum4(x1, x2, x3, x4)
+    x1 + x2 + x3 + x4
 end
 
 function calcMonotonicQGradientsForElems(domain::Domain)
@@ -2566,14 +4531,104 @@ function calcQForElems(domain::Domain)
 
     qstop = domain.qstop
     numElem = domain.numElem
+    numElem8 = numElem * 8
 
     # MONOTONIC Q option
     commRecv(domain, MSG_MONOQ, 3,
              domain.sizeX, domain.sizeY, domain.sizeZ,
              true, true)
 
+
+
+    # JACC Parallel
+
+
+    # JACC Normal Variables
+    ptiny = 1.e-36
+    x_single = Vector{Float64}(undef, numElem8)
+    y_single = Vector{Float64}(undef, numElem8)
+    z_single = Vector{Float64}(undef, numElem8)
+    xv = Vector{Float64}(undef, numElem8)
+    yv = Vector{Float64}(undef, numElem8)
+    zv = Vector{Float64}(undef, numElem8)
+
+    zero_array = zeros(Float64, 10)
+
+    # JACC Arrays
+    nodelist_d = JACC.Array(domain.nodelist)
+    x_d = JACC.Array(domain.x)
+    y_d = JACC.Array(domain.y)
+    z_d = JACC.Array(domain.z)
+    xd_d = JACC.Array(domain.xd)
+    yd_d = JACC.Array(domain.yd)
+    zd_d = JACC.Array(domain.zd)
+    volo_d = JACC.Array(domain.volo)
+    vnew_d = JACC.Array(domain.vnew)
+    delx_zeta_d = JACC.Array(domain.delx_zeta)
+    delv_zeta_d = JACC.Array(domain.delv_zeta)
+    delx_xi_d = JACC.Array(domain.delx_xi)
+    delv_xi_d = JACC.Array(domain.delv_xi)
+    delx_eta_d = JACC.Array(domain.delx_eta)
+    delv_eta_d = JACC.Array(domain.delv_eta)
+
+    zero_array_d = JACC.Array(zero_array)
+
+
+    # JACC Big Arrays
+    x_single_d = JACC.Array(x_single)
+    y_single_d = JACC.Array(y_single)
+    z_single_d = JACC.Array(z_single)
+    xv_d = JACC.Array(xv)
+    yv_d = JACC.Array(yv)
+    zv_d = JACC.Array(zv)
+
+
+    # time1 = time()
+    # # Calculate velocity gradients
+    # calcMonotonicQGradientsForElems(domain)
+    # time2 = time()
+    # println("calcMonotonicQGradientsForElems: ", time2-time1)
+
+    time1 = time()
+    # Calculate velocity gradients with JACC
+    JACC.parallel_for(domain.numElem, MultiDcalcMonotonicQGradientsForElems, nodelist_d, x_single_d, y_single_d, z_single_d, x_d, y_d, z_d, xv_d, yv_d, zv_d, xd_d, yd_d, zd_d, volo_d, vnew_d, delx_zeta_d, delv_zeta_d, delx_xi_d, delv_xi_d, delx_eta_d, delv_eta_d, ptiny, zero_array_d)
+    # JACC.parallel_for(domain.numElem, MultiDcalcMonotonicQGradientsForElems, nodelist_d, x_d, y_d, z_d, xd_d, yd_d, zd_d, volo_d, vnew_d, delx_zeta_d, delv_zeta_d, delx_xi_d, delv_xi_d, delx_eta_d, delv_eta_d, ptiny)
+    time2 = time()
+    println("MultiDcalcMonotonicQGradientsForElems: ", time2-time1)
+
+
+    total_time = 0.0
+    num_runs = 10
+
+    for i in 1:num_runs
+        time1 = time()
+        # Calculate velocity gradients with JACC
+        JACC.parallel_for(domain.numElem, MultiDcalcMonotonicQGradientsForElems, nodelist_d, x_single_d, y_single_d, z_single_d, x_d, y_d, z_d, xv_d, yv_d, zv_d, xd_d, yd_d, zd_d, volo_d, vnew_d, delx_zeta_d, delv_zeta_d, delx_xi_d, delv_xi_d, delx_eta_d, delv_eta_d, ptiny, zero_array_d)
+        # JACC.parallel_for(domain.numElem, MultiDcalcMonotonicQGradientsForElems, nodelist_d, x_d, y_d, z_d, xd_d, yd_d, zd_d, volo_d, vnew_d, delx_zeta_d, delv_zeta_d, delx_xi_d, delv_xi_d, delx_eta_d, delv_eta_d, ptiny)
+        time2 = time()
+        total_time += (time2 - time1)
+    end
+
+    average_time = total_time / num_runs
+    println("Average time for MultiDcalcMonotonicQGradientsForElems over $num_runs runs: ", average_time)
+    # println("I'm done")
+    # JACC MOVING
+
+    # domain.delv_xi = Array(delv_xi_d)
+    # domain.delv_eta = Array(delv_eta_d)
+    # domain.delv_zeta = Array(delv_zeta_d)
+
+    copyto!(domain.delx_zeta, delx_zeta_d)
+    copyto!(domain.delx_xi, delx_xi_d)
+    copyto!(domain.delx_eta, delx_eta_d)
+    copyto!(domain.delv_xi, delv_xi_d)
+    copyto!(domain.delv_eta, delv_eta_d)
+    copyto!(domain.delv_zeta, delv_zeta_d)
+
+
+
     # Calculate velocity gradients
-    calcMonotonicQGradientsForElems(domain)
+    # calcMonotonicQGradientsForElems(domain)
 
     # Transfer veloctiy gradients in the first order elements
     # problem->commElements->Transfer(CommElements::monoQ)
@@ -2605,54 +4660,37 @@ function calcQForElems(domain::Domain)
     end
 end
 
-function calcPressureForElems_part1(i, bvc, pbvc, compression, c1s)
 
-    bvc[i] = c1s * (compression[i] + 1.0)
-    pbvc[i] = c1s
+@inline function MultiDcalcPressureForElems(i, p_new, bvc, pbvc, e_old, compression, vnewc, pmin, p_cut, eosvmax)
+    @inbounds begin
+        c1s = 2.0 / 3.0
 
+        # Calculate bvc and pbvc
+        bvc[i] = c1s * (compression[i] + 1.0)
+        pbvc[i] = c1s
+
+        # Calculate new pressure
+        p_new[i] = bvc[i] * e_old[i]
+
+        # Apply pressure cut-off
+        if abs(p_new[i]) < p_cut
+            p_new[i] = 0.0
+        end
+
+        # Apply volume condition
+        if vnewc[i] >= eosvmax
+            p_new[i] = 0.0
+        end
+
+        # Apply minimum pressure condition
+        if p_new[i] < pmin
+            p_new[i] = pmin
+        end
+    end
 end
 
-function calcPressureForElems_part2(i, p_new, bvc, e_old, p_cut, vnewc, eosvmax, pmin)
 
-    p_new[i] = bvc[i] * e_old[i]
-
-    if abs(p_new[i]) < p_cut
-        p_new[i] = 0.0
-    end
-
-    if vnewc[i] >= eosvmax # impossible condition here?
-        p_new[i] = 0.0
-    end
-
-    if p_new[i] < pmin
-        p_new[i] = pmin
-    end
-
-end
-
-# function calcPressureForElems(domain::Domain, p_new, bvc,
-#                                  pbvc, e_old,
-#                                  compression, vnewc,
-#                                  pmin,
-#                                  p_cut,eosvmax,
-#                                  length              )
-
-#     c1s = 2.0/3.0
-
-#     # Convert arrays to JACC.Array
-#     bvc_d = JACC.Array(bvc)
-#     pbvc_d = JACC.Array(pbvc)
-#     compression_d = JACC.Array(compression)
-#     p_new_d = JACC.Array(p_new)
-#     e_old_d = JACC.Array(e_old)
-#     vnewc_d = JACC.Array(vnewc)
-
-#     JACC.parallel_for(length, calcPressureForElems_part1, bvc_d, pbvc_d, compression_d, c1s)
-#     JACC.parallel_for(length, calcPressureForElems_part2, p_new_d, bvc_d, e_old_d, p_cut, vnewc_d, eosvmax, pmin)
-
-# end
-
-function calcPressureForElems( p_new, bvc,
+function calcPressureForElems(domain::Domain, p_new, bvc,
                                  pbvc, e_old,
                                  compression, vnewc,
                                  pmin,
@@ -2661,103 +4699,60 @@ function calcPressureForElems( p_new, bvc,
 
     c1s = 2.0/3.0
 
-    # Convert arrays to JACC.Array
-    bvc_d = JACC.Array(bvc)
-    pbvc_d = JACC.Array(pbvc)
-    compression_d = JACC.Array(compression)
-    p_new_d = JACC.Array(p_new)
-    e_old_d = JACC.Array(e_old)
-    vnewc_d = JACC.Array(vnewc)
+    for i in 1:length
+        bvc[i] = c1s * (compression[i] + 1.0)
+        pbvc[i] = c1s
+    end
 
-    # JACC.parallel_for(length, calcPressureForElems_part1, bvc_d, pbvc_d, compression_d, c1s)
-    # JACC.parallel_for(length, calcPressureForElems_part2, p_new_d, bvc_d, e_old_d, p_cut, vnewc_d, eosvmax, pmin)
+    for i in 1:length
+        p_new[i] = bvc[i] * e_old[i]
 
+        if abs(p_new[i]) < p_cut
+            p_new[i] = 0.0
+        end
+
+        if vnewc[i] >= eosvmax # impossible condition here?
+            p_new[i] = 0.0
+        end
+
+        if p_new[i] < pmin
+            p_new[i] = pmin
+        end
+    end
 end
 
-function JcalcPressureForElems( domain::Domain, p_new, bvc, pbvc, e_old, compression, vnewc, pmin, p_cut,eosvmax, length, total_time_microseconds )
 
-    c1s = 2.0/3.0
-    # Possible to 
-    # Convert arrays to JACC.Array
-    bvc_d = JACC.Array(bvc)
-    pbvc_d = JACC.Array(pbvc)
-    compression_d = JACC.Array(compression)
-    p_new_d = JACC.Array(p_new)
-    e_old_d = JACC.Array(e_old)
-    vnewc_d = JACC.Array(vnewc)
+function MultiDcalcEnergyForElems(i, p_new,  e_new,  q_new,
+                                bvc,  pbvc,
+                                p_old,  e_old,  q_old,
+                                compression,  compHalfStep,
+                                vnewc,  work,  delvc,  pmin,
+                                p_cut,   e_cut,  q_cut,  emin,
+                                qq,  ql,
+                                rho0,
+                                eosvmax,
+                                pHalfStep                     )
 
-    # Measure the time taken for each part of the calculation
-    elapsed_time = @elapsed begin
-        JACC.parallel_for( length, calcPressureForElems_part1, bvc_d, pbvc_d, compression_d, c1s)
+    TINY1 = 0.111111e-36
+    TINY3 = 0.333333e-18
+    SIXTH = 1.0 / 6.0
+
+    if(i > 27000)
+        return
     end
-    println("calcPressureForElems_part1: ", elapsed_time)
-    total_time_microseconds[] += elapsed_time
 
-
-    elapsed_time = @elapsed begin
-        JACC.parallel_for( length, calcPressureForElems_part2, p_new_d, bvc_d, e_old_d, p_cut, vnewc_d, eosvmax, pmin)
-    end
-    # println("calcPressureForElems_part2: ", time)
-    total_time_microseconds[] += elapsed_time
-
-
-    # Copy values back to original arrays
-    copyto!(p_new, p_new_d)
-    copyto!(bvc, bvc_d)
-    copyto!(pbvc, pbvc_d)
-    copyto!(e_old, e_old_d)
-    copyto!(vnewc, vnewc_d)
-    copyto!(compression, compression_d)
-
-
-end
-
-# function calcPressureForElems(domain::Domain, p_new, bvc,
-#                                  pbvc, e_old,
-#                                  compression, vnewc,
-#                                  pmin,
-#                                  p_cut,eosvmax,
-#                                  length              )
-
-#     c1s = 2.0/3.0
-
-#     for i in 1:length
-#         bvc[i] = c1s * (compression[i] + 1.0)
-#         pbvc[i] = c1s
-#     end
-
-#     for i in 1:length
-#         p_new[i] = bvc[i] * e_old[i]
-
-#         if abs(p_new[i]) < p_cut
-#             p_new[i] = 0.0
-#         end
-
-#         if vnewc[i] >= eosvmax # impossible condition here?
-#             p_new[i] = 0.0
-#         end
-
-#         if p_new[i] < pmin
-#             p_new[i] = pmin
-#         end
-#     end
-# end
-
-function update_values1(i, e_new, e_old, delvc, p_old, q_old, work, emin)
-    
-    # Update energy
     e_new[i] = e_old[i] - 0.5 * delvc[i] * (p_old[i] + q_old[i]) + 0.5 * work[i]
-    if e_new[i] < emin
+
+    if e_new[i]  < emin
         e_new[i] = emin
     end
 
-end
+    MultiDcalcPressureForElems(i, pHalfStep, bvc, pbvc, e_new, compHalfStep,
+                            vnewc, pmin, p_cut, eosvmax)
 
-function update_values2(i, compHalfStep, delvc, q_new, pbvc, e_new, bvc, pHalfStep, rho0, TINY1, TINY3, ql, qq, p_old, q_old)
     vhalf = 1.0 / (1.0 + compHalfStep[i])
 
     if  delvc[i] > 0.0
-    #      q_new(i) /* = qq(i) = ql(i) */ = Real_t(0.) ;
         q_new[i] = 0.0
     else
         ssc = (( pbvc[i] * e_new[i]
@@ -2773,10 +4768,7 @@ function update_values2(i, compHalfStep, delvc, q_new, pbvc, e_new, bvc, pHalfSt
 
     e_new[i] = (e_new[i] + 0.5 * delvc[i] * (  3.0*(p_old[i]     + q_old[i])
         - 4.0*(pHalfStep[i] + q_new[i])))
-end
-
-function update_values3(i, e_new, work, e_cut, emin)
-
+    
     e_new[i] = e_new[i] + 0.5 * work[i]
     if abs(e_new[i]) < e_cut
         e_new[i] = 0.0
@@ -2785,10 +4777,10 @@ function update_values3(i, e_new, work, e_cut, emin)
         e_new[i] = emin
     end
 
-end
+    MultiDcalcPressureForElems(i, p_new, bvc, pbvc, e_new, compression,
+                            vnewc, pmin, p_cut, eosvmax)
 
-function update_values_4(i, delvc, pbvc, e_new, vnewc, bvc, p_new, rho0, TINY1, TINY3, ql, qq, p_old, q_old, pHalfStep, q_new, SIXTH, e_cut, emin)
-
+    # for i in 1:length
     if delvc[i] > 0.0
         q_tilde = 0.0
     else
@@ -2814,10 +4806,12 @@ function update_values_4(i, delvc, pbvc, e_new, vnewc, bvc, p_new, rho0, TINY1, 
     if e_new[i]  < emin
         e_new[i] = emin
     end
+    # end
 
-end
+    MultiDcalcPressureForElems(i, p_new, bvc, pbvc, e_new, compression,
+                            vnewc, pmin, p_cut, eosvmax)
 
-function update_values_5(i, delvc, pbvc, e_new, vnewc, bvc, p_new, rho0, TINY1, TINY3, ql, qq, q_new, q_cut)
+    # for i in 1:length
 
     if delvc[i] <= 0.0
         ssc = (( pbvc[i] * e_new[i]
@@ -2835,413 +4829,121 @@ function update_values_5(i, delvc, pbvc, e_new, vnewc, bvc, p_new, rho0, TINY1, 
             q_new[i] = 0.0
         end
     end
-
+    # end
 end
 
-# function calcEnergyForElems(domain::Domain, p_new, e_new, q_new,
-#     bvc, pbvc,
-#     p_old, e_old, q_old,
-#     compression, compHalfStep,
-#     vnewc, work, delvc, pmin,
-#     p_cut, e_cut, q_cut, emin,
-#     qq, ql,
-#     rho0,
-#     eosvmax,
-#     length_sample)
 
-#     TINY1 = 0.111111e-36
-#     TINY3 = 0.333333e-18
-#     SIXTH = 1.0 / 6.0
+function calcEnergyForElems(domain::Domain, p_new,  e_new,  q_new,
+                                bvc,  pbvc,
+                                p_old,  e_old,  q_old,
+                                compression,  compHalfStep,
+                                vnewc,  work,  delvc,  pmin,
+                                p_cut,   e_cut,  q_cut,  emin,
+                                qq,  ql,
+                                rho0,
+                                eosvmax,
+                                length                          )
 
-#     pHalfStep = Vector{Float64}(undef, length_sample)
-
-#     # Convert arrays to JACC.Array
-#     e_new_d = JACC.Array(e_new)
-#     e_old_d = JACC.Array(e_old)
-#     delvc_d = JACC.Array(delvc)
-#     p_old_d = JACC.Array(p_old)
-#     q_old_d = JACC.Array(q_old)
-#     work_d = JACC.Array(work)
-#     compHalfStep_d = JACC.Array(compHalfStep)
-#     q_new_d = JACC.Array(q_new)
-#     pbvc_d = JACC.Array(pbvc)
-#     bvc_d = JACC.Array(bvc)
-#     pHalfStep_d = JACC.Array(pHalfStep)
-#     ql_d = JACC.Array(ql)
-#     qq_d = JACC.Array(qq)
-#     vnewc_d = JACC.Array(vnewc)
-#     p_new_d = JACC.Array(p_new)
-
-#     N = length(e_new)   
-
-#     # Run parallel computations
-
-#     calcPressureForElems(domain, pHalfStep_d, bvc_d, pbvc_d, e_new_d, compHalfStep_d,
-#         vnewc_d, pmin, p_cut, eosvmax, length_sample)
-
-#     JACC.parallel_for(length_sample, update_values, compHalfStep_d, delvc_d, q_new_d, pbvc_d, e_new_d, bvc_d, pHalfStep_d, rho0, TINY1, TINY3, ql_d, qq_d, p_old_d, q_old_d)
-
-#     JACC.parallel_for(length_sample, update_energy_values, e_new_d, work_d, e_cut, emin)
-
-#     calcPressureForElems(domain, p_new_d, bvc_d, pbvc_d, e_new_d, compression,
-#         vnewc_d, pmin, p_cut, eosvmax, length_sample)
-
-#     JACC.parallel_for(length_sample, update_energy_values_v2, delvc_d, pbvc_d, e_new_d, vnewc_d, bvc_d, p_new_d, rho0, TINY1, TINY3, ql_d, qq_d, p_old_d, q_old_d, pHalfStep_d, q_new_d, SIXTH, e_cut, emin)
-
-#     calcPressureForElems(domain, p_new_d, bvc_d, pbvc_d, e_new_d, compression,
-#         vnewc_d, pmin, p_cut, eosvmax, length_sample)
-
-#     JACC.parallel_for(length_sample, update_q_values, delvc_d, pbvc_d, e_new_d, vnewc_d, bvc_d, p_new_d, rho0, TINY1, TINY3, ql_d, qq_d, q_new_d, q_cut)
-
-#     # Copy data back from JACC.Array to original arrays
-#     copyto!(e_new, e_new_d)
-#     copyto!(p_new, p_new_d)
-#     copyto!(q_new, q_new_d)
-#     copyto!(bvc, bvc_d)
-#     copyto!(pbvc, pbvc_d)
-#     copyto!(p_old, p_old_d)
-#     copyto!(e_old, e_old_d)
-#     copyto!(q_old, q_old_d)
-#     copyto!(compHalfStep, compHalfStep_d)
-#     copyto!(vnewc, vnewc_d)
-#     copyto!(work, work_d)
-#     copyto!(delvc, delvc_d)
-#     copyto!(qq, qq_d)
-#     copyto!(ql, ql_d)
-# end
-
-# function calcEnergyForElems( p_new,  e_new,  q_new,
-#                                 bvc,  pbvc,
-#                                 p_old,  e_old,  q_old,
-#                                 compression,  compHalfStep,
-#                                 vnewc,  work,  delvc,  pmin,
-#                                 p_cut,   e_cut,  q_cut,  emin,
-#                                 qq,  ql,
-#                                 rho0,
-#                                 eosvmax, length_sample, pHalfStep)
-
-#     TINY1 = 0.111111e-36
-#     TINY3 = 0.333333e-18
-#     SIXTH = 1.0 / 6.0
-
-#     #mine  1
-#     # if i <= length(e_new)
-#         @inbounds e_new[i] = e_old[i] - 0.5 * delvc[i] * (p_old[i] + q_old[i]) + 0.5 * work[i]
-#         if e_new[i] < emin
-#             e_new[i] = emin
-#         end
-#     # end
-#     #mine end  1
-
-    # calcPressureForElems( pHalfStep, bvc, pbvc, e_new, compression, vnewc, pmin, p_cut, eosvmax, length_sample)
-
-#     #mine 2
-
-#     # if i <= length(compHalfStep)
-#         vhalf = 1.0 / (1.0 + compHalfStep[i])
-
-#         if delvc[i] > 0.0
-#             q_new[i] = 0.0
-#         else
-#             ssc = ((pbvc[i] * e_new[i] + vhalf * vhalf * bvc[i] * pHalfStep[i]) / rho0)
-#             if ssc <= TINY1
-#                 ssc = TINY3
-#             else
-#                 ssc = sqrt(ssc)
-#             end
-
-#             q_new[i] = (ssc * ql[i] + qq[i])
-#         end
-
-#         e_new[i] = (e_new[i] + 0.5 * delvc[i] * (3.0 * (p_old[i] + q_old[i]) - 4.0 * (pHalfStep[i] + q_new[i])))
-#     # end
-
-#     #mine end 2
-
-#     #mine 3
-#     # if i <= length(e_new)
-#         e_new[i] = e_new[i] + 0.5 * work[i]
-#         if abs(e_new[i]) < e_cut
-#             e_new[i] = 0.0
-#         end
-#         if e_new[i] < emin
-#             e_new[i] = emin
-#         end
-#     # end
-#     #mine end 3
-
-#     # calcPressureForElems( p_new, bvc, pbvc, e_new, compression, vnewc, pmin, p_cut, eosvmax, length_sample)
-
-
-#     #mine 4
-
-#     # if i <= length(delvc)
-#         if delvc[i] > 0.0
-#             q_tilde = 0.0
-#         else
-#             ssc = (pbvc[i] * e_new[i] + vnewc[i] * vnewc[i] * bvc[i] * p_new[i]) / rho0
-
-#             if ssc <= TINY1
-#                 ssc = TINY3
-#             else
-#                 ssc = sqrt(ssc)
-#             end
-
-#             q_tilde = (ssc * ql[i] + qq[i])
-#         end
-
-#         e_new[i] = (e_new[i] - (7.0 * (p_old[i] + q_old[i]) - 8.0 * (pHalfStep[i] + q_new[i]) + (p_new[i] + q_tilde)) * delvc[i] * SIXTH)
-
-#         if abs(e_new[i]) < e_cut
-#             e_new[i] = 0.0
-#         end
-#         if e_new[i] < emin
-#             e_new[i] = emin
-#         end
-#     # end
-
-#     #mine end 4
-
-#     # calcPressureForElems( p_new, bvc, pbvc, e_new, compression, vnewc, pmin, p_cut, eosvmax, length_sample)
-
-#     #mine 5
-
-#     # if i <= length(delvc)
-#         if delvc[i] <= 0.0
-#             ssc = ((pbvc[i] * e_new[i] + vnewc[i] * vnewc[i] * bvc[i] * p_new[i]) / rho0)
-
-#             if ssc <= TINY1
-#                 ssc = TINY3
-#             else
-#                 ssc = sqrt(ssc)
-#             end
-
-#             q_new[i] = (ssc * ql[i] + qq[i])
-
-#             if abs(q_new[i]) < q_cut
-#                 q_new[i] = 0.0
-#             end
-#         end
-#     # end
-
-#     #mine end 5
-
-# end
-
-function JCalcEnergyForElems( domain::Domain, p_new,  e_new,  q_new, bvc,  pbvc, p_old,  e_old,  q_old, compression,  compHalfStep, vnewc,  work,  delvc,  pmin, p_cut,   e_cut,  q_cut,  emin, qq,  ql, rho0, eosvmax, length, total_time_microseconds  )
-    
     TINY1 = 0.111111e-36
     TINY3 = 0.333333e-18
     SIXTH = 1.0 / 6.0
+
+
     pHalfStep = Vector{Float64}(undef, length)
 
-    # Convert arrays to JACC.Array
-    e_new_d = JACC.Array(e_new)
-    e_old_d = JACC.Array(e_old)
-    delvc_d = JACC.Array(delvc)
-    p_old_d = JACC.Array(p_old)
-    q_old_d = JACC.Array(q_old)
-    work_d = JACC.Array(work)
-    pHalfStep_d = JACC.Array(pHalfStep)
-    bvc_d = JACC.Array(bvc)
-    pbvc_d = JACC.Array(pbvc)
-    compHalfStep_d = JACC.Array(compHalfStep)
-    vnewc_d = JACC.Array(vnewc)
-    p_new_d = JACC.Array(p_new)
-    q_new_d = JACC.Array(q_new)
-    ql_d = JACC.Array(ql)
-    qq_d = JACC.Array(qq)
+    for i in 1:length
+        e_new[i] = e_old[i] - 0.5 * delvc[i] * (p_old[i] + q_old[i]) + 0.5 * work[i]
 
-    # Measure time
-    elapsed_time = @elapsed begin
-        JACC.parallel_for(length, update_values1, e_new_d, e_old_d, delvc_d, p_old_d, q_old_d, work_d, emin)
-    end
-    total_time_microseconds[] += elapsed_time
-
-
-    JcalcPressureForElems( domain, pHalfStep, bvc, pbvc, e_new, compHalfStep, vnewc, pmin, p_cut, eosvmax, length, total_time_microseconds )
-
-    elapsed_time = @elapsed begin
-        JACC.parallel_for( length, update_values2, compHalfStep_d, delvc_d, q_new_d, pbvc_d, e_new_d, bvc_d, pHalfStep_d, rho0, TINY1, TINY3, ql_d, qq_d, p_old_d, q_old_d )
-    end
-    total_time_microseconds[] += elapsed_time
-
-    elapsed_time = @elapsed begin
-        JACC.parallel_for( length, update_values3, e_new_d, work_d, e_cut, emin )
-    end
-    total_time_microseconds[] += elapsed_time
-
-    JcalcPressureForElems( domain, p_new, bvc, pbvc, e_new, compression, vnewc, pmin, p_cut, eosvmax, length, total_time_microseconds )
-
-    elapsed_time = @elapsed begin
-        JACC.parallel_for( length, update_values_4, delvc_d, pbvc_d, e_new_d, vnewc_d, bvc_d, p_new_d, rho0, TINY1, TINY3, ql_d, qq_d, p_old_d, q_old_d, pHalfStep_d, q_new_d, SIXTH, e_cut, emin )
-    end
-    total_time_microseconds[] += elapsed_time
-
-    JcalcPressureForElems( domain, p_new, bvc, pbvc, e_new, compression, vnewc, pmin, p_cut, eosvmax, length, total_time_microseconds )
-
-    elapsed_time = @elapsed begin
-        JACC.parallel_for( length, update_values_5, delvc_d, pbvc_d, e_new_d, vnewc_d, bvc_d, p_new_d, rho0, TINY1, TINY3, ql_d, qq_d, q_new_d, q_cut )
-    end
-    total_time_microseconds[] += elapsed_time
-    println( "Total time inside function: ", total_time_microseconds[] )
-
-    # Copy data back from JACC.Array to original arrays
-    copyto!(e_new, e_new_d)
-    copyto!(p_new, p_new_d)
-    copyto!(q_new, q_new_d)
-    copyto!(bvc, bvc_d)
-    copyto!(pbvc, pbvc_d)
-    copyto!(p_old, p_old_d)
-    copyto!(e_old, e_old_d)
-    copyto!(q_old, q_old_d)
-    copyto!(compHalfStep, compHalfStep_d)
-    copyto!(vnewc, vnewc_d)
-    copyto!(work, work_d)
-    copyto!(delvc, delvc_d)
-    copyto!(qq, qq_d)
-    copyto!(ql, ql_d)
-
-
-
-end
-
-function calcEnergyForElems(i, p_new, e_new, q_new,
-                            bvc, pbvc,
-                            p_old, e_old, q_old,
-                            compression, compHalfStep,
-                            vnewc, work, delvc, pmin,
-                            p_cut, e_cut, q_cut, emin,
-                            qq, ql,
-                            rho0,
-                            eosvmax, length_sample, pHalfStep)
-
-    TINY1 = 0.111111e-36
-    TINY3 = 0.333333e-18
-    SIXTH = 1.0 / 6.0
-    c1s = 2.0/3.0
-
-    # Update energy
-    e_new[i] = e_old[i] - 0.5 * delvc[i] * (p_old[i] + q_old[i]) + 0.5 * work[i]
-    if e_new[i] < emin
-        e_new[i] = emin
-    end
-
-    # calcPressureForElems( pHalfStep, bvc, pbvc, e_new, compression, vnewc, pmin, p_cut, eosvmax, length_sample)
-
-
-    bvc[i] = c1s * (compression[i] + 1.0)
-    pHalfStep[i] = c1s
-
-    pHalfStep[i] = bvc[i] * e_old[i]
-
-    if abs(pHalfStep[i]) < p_cut
-        pHalfStep[i] = 0.0
-    end
-
-    if vnewc[i] >= eosvmax # impossible condition here?
-        pHalfStep[i] = 0.0
-    end
-
-    if pHalfStep[i] < pmin
-        pHalfStep[i] = pmin
-    end
-
-
-    # Calculate q_new
-    vhalf = 1.0 / (1.0 + compHalfStep[i])
-    if delvc[i] > 0.0
-        q_new[i] = 0.0
-    else
-        ssc = ((pbvc[i] * e_new[i] + vhalf * vhalf * bvc[i] * pHalfStep[i]) / rho0)
-        if ssc <= TINY1
-            ssc = TINY3
-        else
-            ssc = sqrt(ssc)
+        if e_new[i]  < emin
+            e_new[i] = emin
         end
-        q_new[i] = (ssc * ql[i] + qq[i])
     end
 
-    # Update energy again
-    e_new[i] = e_new[i] + 0.5 * delvc[i] * (3.0 * (p_old[i] + q_old[i]) - 4.0 * (pHalfStep[i] + q_new[i]))
-    e_new[i] = e_new[i] + 0.5 * work[i]
-    if abs(e_new[i]) < e_cut
-        e_new[i] = 0.0
-    end
-    if e_new[i] < emin
-        e_new[i] = emin
-    end
+    calcPressureForElems(domain, pHalfStep, bvc, pbvc, e_new, compHalfStep,
+                            vnewc, pmin, p_cut, eosvmax, length)
+    for i in 1:length
+        vhalf = 1.0 / (1.0 + compHalfStep[i])
 
-
-    #insert pressure for elem
-
-    bvc[i] = c1s * (compression[i] + 1.0)
-    p_new[i] = c1s
-
-    p_new[i] = bvc[i] * e_old[i]
-
-    if abs(p_new[i]) < p_cut
-        p_new[i] = 0.0
-    end
-
-    if vnewc[i] >= eosvmax # impossible condition here?
-        p_new[i] = 0.0
-    end
-
-    if p_new[i] < pmin
-        p_new[i] = pmin
-    end
-
-    # Calculate q_tilde and update energy
-    if delvc[i] > 0.0
-        q_tilde = 0.0
-    else
-        ssc = (pbvc[i] * e_new[i] + vnewc[i] * vnewc[i] * bvc[i] * p_new[i]) / rho0
-        if ssc <= TINY1
-            ssc = TINY3
-        else
-            ssc = sqrt(ssc)
-        end
-        q_tilde = (ssc * ql[i] + qq[i])
-    end
-    e_new[i] = e_new[i] - (7.0 * (p_old[i] + q_old[i]) - 8.0 * (pHalfStep[i] + q_new[i]) + (p_new[i] + q_tilde)) * delvc[i] * SIXTH
-    if abs(e_new[i]) < e_cut
-        e_new[i] = 0.0
-    end
-    if e_new[i] < emin
-        e_new[i] = emin
-    end
-
-    #insert pressure for elem
-
-    bvc[i] = c1s * (compression[i] + 1.0)
-    p_new[i] = c1s
-
-    p_new[i] = bvc[i] * e_old[i]
-
-    if abs(p_new[i]) < p_cut
-        p_new[i] = 0.0
-    end
-
-    if vnewc[i] >= eosvmax # impossible condition here?
-        p_new[i] = 0.0
-    end
-
-    if p_new[i] < pmin
-        p_new[i] = pmin
-    end
-
-    # Final q_new calculation
-    if delvc[i] <= 0.0
-        ssc = ((pbvc[i] * e_new[i] + vnewc[i] * vnewc[i] * bvc[i] * p_new[i]) / rho0)
-        if ssc <= TINY1
-            ssc = TINY3
-        else
-            ssc = sqrt(ssc)
-        end
-        q_new[i] = (ssc * ql[i] + qq[i])
-        if abs(q_new[i]) < q_cut
+        if  delvc[i] > 0.0
+        #      q_new(i) /* = qq(i) = ql(i) */ = Real_t(0.) ;
             q_new[i] = 0.0
+        else
+            ssc = (( pbvc[i] * e_new[i]
+                + vhalf * vhalf * bvc[i] * pHalfStep[i] ) / rho0)
+            if ssc <= TINY1
+                ssc = TINY3
+            else
+                ssc = sqrt(ssc)
+            end
+
+            q_new[i] = (ssc*ql[i] + qq[i])
+        end
+
+        e_new[i] = (e_new[i] + 0.5 * delvc[i] * (  3.0*(p_old[i]     + q_old[i])
+            - 4.0*(pHalfStep[i] + q_new[i])))
+    end
+
+    for i in 1:length
+        e_new[i] = e_new[i] + 0.5 * work[i]
+        if abs(e_new[i]) < e_cut
+            e_new[i] = 0.0
+        end
+        if e_new[i]  < emin
+            e_new[i] = emin
+        end
+    end
+
+    calcPressureForElems(domain, p_new, bvc, pbvc, e_new, compression,
+                            vnewc, pmin, p_cut, eosvmax, length)
+
+    for i in 1:length
+        if delvc[i] > 0.0
+            q_tilde = 0.0
+        else
+            ssc = ( pbvc[i] * e_new[i]
+                + vnewc[i] * vnewc[i] * bvc[i] * p_new[i] ) / rho0
+
+            if ssc <= TINY1
+                ssc = TINY3
+            else
+                ssc = sqrt(ssc)
+            end
+
+            q_tilde = (ssc*ql[i] + qq[i])
+        end
+
+        e_new[i] = (e_new[i] - (  7.0*(p_old[i]     + q_old[i])
+                            -    8.0*(pHalfStep[i] + q_new[i])
+                            + (p_new[i] + q_tilde)) * delvc[i]*SIXTH)
+
+        if abs(e_new[i]) < e_cut
+            e_new[i] = 0.0
+        end
+        if e_new[i]  < emin
+            e_new[i] = emin
+        end
+    end
+
+    calcPressureForElems(domain, p_new, bvc, pbvc, e_new, compression,
+                            vnewc, pmin, p_cut, eosvmax, length)
+
+    for i in 1:length
+
+        if delvc[i] <= 0.0
+            ssc = (( pbvc[i] * e_new[i]
+                + vnewc[i] * vnewc[i] * bvc[i] * p_new[i] ) / rho0)
+
+            if ssc <= TINY1
+                ssc = TINY3
+            else
+                ssc = sqrt(ssc)
+            end
+
+            q_new[i] = (ssc*ql[i] + qq[i])
+
+            if abs(q_new[i]) < q_cut
+                q_new[i] = 0.0
+            end
         end
     end
 end
@@ -3346,62 +5048,64 @@ function evalEOSForElems(domain::Domain, vnewc, length)
         work[i] = 0.0
     end
 
-        # e_new_d = JACC.Array(e_new)
-        # e_old_d = JACC.Array(e_old)
-        # delvc_d = JACC.Array(delvc)
-        # p_old_d = JACC.Array(p_old)
-        # q_old_d = JACC.Array(q_old)
-        # work_d = JACC.Array(work)
-        # compHalfStep_d = JACC.Array(compHalfStep)
-        # q_new_d = JACC.Array(q_new)
-        # pbvc_d = JACC.Array(pbvc)
-        # bvc_d = JACC.Array(bvc)
-        # p_new_d = JACC.Array(p_new)
-        # compression_d = JACC.Array(compression)
-        # vnewc_d = JACC.Array(vnewc)
-        # qq_d = JACC.Array(qq)
-        # ql_d = JACC.Array(ql)
-        # length_sample = length
-        # pHalfStep = Vector{Float64}(undef, length_sample)
-        # pHalfStep_d = JACC.Array(pHalfStep)
 
-        # JACC.set_num_threads_per_block(512)
+    pHalfStep = Vector{Float64}(undef, length)
 
+    p_new_d = JACC.Array(p_new)
+    e_new_d = JACC.Array(e_new)
+    q_new_d = JACC.Array(q_new)
+    bvc_d = JACC.Array(bvc)
+    pbvc_d = JACC.Array(pbvc)
+    p_old_d = JACC.Array(p_old)
+    e_old_d = JACC.Array(e_old)
+    q_old_d = JACC.Array(q_old)
+    compression_d = JACC.Array(compression)
+    compHalfStep_d = JACC.Array(compHalfStep)
+    vnewc_d = JACC.Array(vnewc)
+    work_d = JACC.Array(work)
+    delvc_d = JACC.Array(delvc)
+    qq_d = JACC.Array(qq)
+    ql_d = JACC.Array(ql)
+    pHalfStep_d = JACC.Array(pHalfStep)
 
-    # @time begin #remember to only leave the function at the end 
-    total_time_microseconds = Ref( 0.0 )
-    JCalcEnergyForElems( domain, p_new, e_new, q_new, bvc, pbvc,
-                        p_old, e_old,  q_old, compression,
-                        compHalfStep, vnewc, work,  delvc, pmin,
-                        p_cut, e_cut, q_cut, emin,
-                        qq, ql, rho0, eosvmax, length, total_time_microseconds )
-    println("Total time in microseconds: ", total_time_microseconds[])
-        # JACC.parallel_for(length, calcEnergyForElems, p_new_d, e_new_d, q_new_d, bvc_d, pbvc_d,
-        #                     p_old_d, e_old_d,  q_old_d, compression_d,
-        #                     compHalfStep_d, vnewc_d, work_d,  delvc_d, pmin,
-        #                     p_cut, e_cut, q_cut, emin,
-        #                     qq_d, ql_d, rho0, eosvmax, length_sample, pHalfStep_d)
+    time1 = time()
 
-        # JACC.parallel_for(length_sample, calcEnergyForElems, p_new_d, e_new_d, q_new_d, bvc_d, pbvc_d,
-        #           p_old_d, e_old_d, q_old_d, compression_d, compHalfStep_d, vnewc_d, work_d,
-        #           delvc_d, pmin, p_cut, e_cut, q_cut, emin, qq_d, ql_d, rho0, eosvmax, length_sample, pHalfStep_d)
-        
-    # end
-    # e_new = Array(e_new_d)
-    # e_old = Array(e_old_d)
-    # delvc = Array(delvc_d)
-    # p_old = Array(p_old_d)
-    # q_old = Array(q_old_d)
-    # work = Array(work_d)
-    # compHalfStep = Array(compHalfStep_d)
-    # q_new = Array(q_new_d)
-    # pbvc = Array(pbvc_d)
-    # bvc = Array(bvc_d)
-    # p_new = Array(p_new_d)
-    # compression = Array(compression_d)
-    # vnewc = Array(vnewc_d)
-    # qq = Array(qq_d)
-    # ql = Array(ql_d)
+    JACC.parallel_for(length, MultiDcalcEnergyForElems, p_new_d, e_new_d, q_new_d,
+                        bvc_d, pbvc_d, p_old_d, e_old_d, q_old_d, compression_d,
+                        compHalfStep_d, vnewc_d, work_d, delvc_d, pmin,
+                        p_cut, e_cut, q_cut, emin, qq_d, ql_d, rho0, eosvmax, pHalfStep_d)
+    # CUDA.synchronize()
+    time2 = time()
+
+    println("Time for MultiDcalcEnergyForElems: ", time2 - time1)
+
+    total_time = 0.0
+    num_runs = 10
+
+    for jk in 1:num_runs
+        time1 = time()
+
+        JACC.parallel_for(length, MultiDcalcEnergyForElems, p_new_d, e_new_d, q_new_d,
+                            bvc_d, pbvc_d, p_old_d, e_old_d, q_old_d, compression_d,
+                            compHalfStep_d, vnewc_d, work_d, delvc_d, pmin,
+                            p_cut, e_cut, q_cut, emin, qq_d, ql_d, rho0, eosvmax, pHalfStep_d)
+        # CUDA.synchronize()
+        time2 = time()
+
+        total_time = total_time + (time2 - time1)
+    end
+
+    average_time = total_time / num_runs
+    println("Average time for MultiDcalcEnergyForElems over $num_runs runs: ", average_time)
+
+    # Use these with JACC
+
+    p_new = Array(p_new_d)
+    e_new = Array(e_new_d)
+    q_new = Array(q_new_d)
+    bvc = Array(bvc_d)
+    pbvc = Array(pbvc_d)
+    vnewc = Array(vnewc_d)
 
 
     for i in 1:length
